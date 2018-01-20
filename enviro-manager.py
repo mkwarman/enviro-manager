@@ -7,27 +7,39 @@ import RPi_I2C_driver
 import gpio
 import sys
 import sensor
+import serial
+import duty_cycle
 
 app = Flask(__name__)
 
 PROBE_DIRECTORY = "/sys/bus/w1/devices/28-0317030193ff/w1_slave"
 
 MAT_TEMP_LOWER_BOUND = 90
-MAT_TEMP_UPPER_BOUND = 95
-AMBIENT_TEMP_LOWER_BOUND = 84
-AMBIENT_TEMP_UPPER_BOUND = 86
+MAT_TEMP_TARGET = 93
+MAT_TEMP_UPPER_BOUND = 96
+AMBIENT_TEMP_LOWER_BOUND = 83
+AMBIENT_TEMP_TARGET = 85
+AMBIENT_TEMP_UPPER_BOUND = 88
 HUMIDITY_UPPER_BOUND = 60
 HUMIDITY_LOWER_BOUND = 40
+
+NULL_ZONE = 1
+
+MAT_SERIAL_IDENTIFIER = "M"
+LIGHT_SERIAL_IDENTIFIER = "L"
+ZERO_CROSS_IDENTIFIER = "Z"
 
 ON = 1
 OFF = 0
 
-probe = Probe(PROBE_DIRECTORY)
-
 display = RPi_I2C_driver.lcd()
-
+probe = Probe(PROBE_DIRECTORY)
 dht1 = DHT22(gpio.DHT_SENSOR1_PIN, 1)
 dht2 = DHT22(gpio.DHT_SENSOR2_PIN, 2)
+mat = DutyCycle(MAT_SERIAL_IDENTIFIER)
+light = DutyCycle(LIGHT_SERIAL_IDENTIFIER)
+
+serialConnection = serial.Serial('/dev/serial0', 9600)
 
 poll_sensors = True
 
@@ -70,21 +82,22 @@ def run_probe(probes):
     global probe_temp
     probe_temp = temp
 
-    if temp < MAT_TEMP_LOWER_BOUND:
+    if temp < MAT_TEMP_TARGET:
         if (gpio.mat_state != ON):
             gpio.set_mat(ON)
+        if temp < MAT_TEMP_LOWER_BOUND:
+            print("Max mat duty cycle")
+            mat.max_duty_cycle
         else:
-            # TODO: increase mat duty cycle
             print("Increase mat duty cycle")
-    elif temp > MAT_TEMP_UPPER_BOUND:
-        if (gpio.mat_state != OFF):
-            gpio.set_mat(OFF)
+            mat.increase_duty_cycle(serialConnection)
+    else temp > MAT_TEMP_TARGET:
+        if temp > MAT_TEMP_UPPER_BOUND:
+            if (gpio.mat_state != OFF):
+                gpio.set_mat(OFF)
         else:
-            # TODO: decrease mat duty cycle
             print("Decrease mat duty cycle")
-    else:
-        print("No change to mat duty cycle")
-        # TODO: minor duty cycle adjustments
+            mat.decrease_duty_cycle(serialConnection)
 
 def run_dht(dhts):
     # Support for multiple DHTs
