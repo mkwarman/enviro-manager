@@ -23,6 +23,7 @@ light_state = OFF
 fogger_state = OFF
 
 def enabled(enabled):
+    global gpio_enabled
     gpio_enabled = enabled
 
 def set_mat(on_off):

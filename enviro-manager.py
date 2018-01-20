@@ -98,12 +98,10 @@ def run_dht(dhts):
         dht_hum, dht_temp, display_string = sensor.get_dht_data(dht)
         if dht_temp and dht_hum:
             # Only add if sensor returns good data
-            print("updating sensor " + str(index) + " value")
             sensor_values[index] = {
                 'temp': dht_temp,
                 'hum': dht_hum
             }
-            print("sensor_values: " + str(sensor_values))
             temp += dht_temp
             hum += dht_hum
         else:
