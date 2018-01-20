@@ -111,16 +111,19 @@ def run_dht(dhts):
         dht_hum, dht_temp, display_string = sensor.get_dht_data(dht)
         if dht_temp and dht_hum:
             # Only add if sensor returns good data
+            print("updating sensor " + str(index) + " value")
             sensor_values[index] = {
-                'temp': temp,
-                'hum': hum
+                'temp': dht_temp,
+                'hum': dht_hum
             }
+            print("sensor_values: " + str(sensor_values))
             temp += dht_temp
             hum += dht_hum
-        elif display_string:
-            display.lcd_display_string(display_string, dht.number + 2)
         else:
             sensors -= 1
+
+        if display_string:
+            display.lcd_display_string(display_string, dht.number + 2)
 
     if sensors < 1:
         # not enough sensors to continue operation
