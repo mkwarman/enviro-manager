@@ -25,18 +25,21 @@ def enabled(enabled):
 def set_mat(on_off):
     mat_state = on_off
     if gpio_enabled:
+        print("Turning mat " + on_off)
         GPIO.output(MAT_RELAY_PIN, on_off)
     return
 
 def set_light(on_off):
     light_state = on_off
     if gpio_enabled:
+        print("Turning light " + on_off)
         GPIO.output(LIGHT_RELAY_PIN, on_off)
     return
 
 def set_fogger(on_off):
     fogger_state = on_off
     if gpio_enabled:
+        print("Turning fogger " + on_off)
         GPIO.output(FOGGER_RELAY_PIN, on_off)
     return
 
