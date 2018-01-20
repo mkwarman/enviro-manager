@@ -1,80 +1,35 @@
-import re
-import Adafruit_DHT
+def get_probe_data(probe):
+    if probe.disabled:
+        return None, probe.disabled_string
 
-DHT22_RETRIES = 3
-TRIES_BEFORE_DISABLE = 3
-REGEX = re.compile(r'YES\n[\w ]*t=(\d+)$')
+    try:
+        temp = probe.get_temp_f()
 
-# DS18b20
-class Probe:
-    concurrent_failures = 0
-    disabled = False
-    disabled_string = "Probe disabled"
+    except (RuntimeError, IOError) as error:
+        # TODO: Handle error - ALARM
+        print("Exception while polling probe: " + str(error))
+        return None, "Check probe conn!"
 
-    def __init__(self, path):
-        self.path = path
+    return temp, "Probe Temp: {0:0.2f}F".format(temp)
 
-    def get_temp_c(self):
-        try:
-            probe_file = open(self.path)
-            regex_result = REGEX.search(probe_file.read())
-            if self.concurrent_failures != 0:
-                self.concurrent_failures = 0
-        except Exception as e:
-            self.increment_read_failures()
-            raise IOError('Could not open probe data file: ' + str(e))
+def get_dht_data(dht_sensor):
+    if dht_sensor.disabled:
+        return None, None, dht_sensor.disabled_string
 
-        if regex_result:
-            temp_string = regex_result.group(1)
-            #temp_c =
-            return (int(temp_string)/1000)
-            #return round((temp_c if c_or_f == "c" else to_f(temp_c)), 3)
-        else:
-            print("Probe regex could not find temp")
-            self.increment_read_failures()
-            raise RuntimeError('Probe regex could not find temp')
+    try:
+        hum, temp = dht_sensor.get_data_f()
 
-    def get_temp_f(self):
-        return (self.get_temp_c() * 1.8) + 32
-    
-    def increment_read_failures(self):
-        self.concurrent_failures += 1
-        if self.concurrent_failures >= TRIES_BEFORE_DISABLE:
-            self.disabled = True
-            self.disabled_string = ("Check probe conn!")
+    except RuntimeError as error:
+        # TODO: Handle error - ALARM
+        #display.lcd_display_string("Check sensor " + str(dht_sensor.number) + " conn!", line_number)
+        print("Exception while polling sensor " + str(dht_sensor.number) + ": " + str(error))
+        return None, None, None
 
+    if (temp > 50 and temp <= 120) and (hum > 0 and hum <= 100):
+        global sensor_values
 
-
-# DHT22
-class DHT22:
-    sensor = Adafruit_DHT.DHT22
-    concurrent_failures = 0
-    disabled = False
-
-    def __init__(self, pin, number):
-        self.pin = pin
-        self.number = number
-        self.disabled_string = "Sensor " + str(number) + " disabled"
-
-    def get_data_c(self):
-        humidity, temperature_c = Adafruit_DHT.read_retry(self.sensor, self.pin, DHT22_RETRIES)
-        if not (isinstance(humidity, float) and isinstance(temperature_c, float)):
-            self.increment_read_failures()
-            raise RuntimeError('Sensor poll failed')
-        elif self.concurrent_failures != 0:
-            print("resetting failures")
-            self.concurrent_failures = 0
-
-        return humidity, temperature_c
-
-    def get_data_f(self):
-        humidity, temperature_c = self.get_data_c()
-        temperature_f = (temperature_c * 1.8) + 32
-        return humidity, temperature_f
-
-    def increment_read_failures(self):
-        self.concurrent_failures += 1
-        print("incrementing failures, now: " + str(self.concurrent_failures))
-        if self.concurrent_failures >= TRIES_BEFORE_DISABLE:
-            self.disabled = True
-            self.disabled_string = ("Check sensor " + str(self.number) + " conn!")
+        display.lcd_display_string("{0}: T:{1:0.2f}F H:{2:0.2f}%".format(sensor_number_string, temp, hum), line_number)
+        return hum, temp, "{0}: T:{1:0.2f}F H:{2:0.2f}%".format(sensor_number_string, temp, hum)
+    else:
+        print("Bad sensor data")
+        return None, None, None

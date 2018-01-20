@@ -2,18 +2,43 @@ import RPi.GPIO as GPIO
 
 GPIO.setmode(GPIO.BCM)
 
-#GPIO.setup(17, OUTPUT)
-#GPIO.setup(27, OUTPUT)
-#GPIO.setup(22, OUTPUT)
+MAT_RELAY_PIN = 18
+LIGHT_RELAY_PIN = 23
+FOGGER_RELAY_PIN = 24
 
-def setup_pin(pin):
-    GPIO.setup(pin, GPIO.OUT)
+DHT_SENSOR1_PIN = 17
+DHT_SENSOR1_PIN = 27
 
-def set_high(pin):
-    GPIO.output(pin, 1)
+GPIO.setup(MAT_RELAY_PIN, GPIO.OUT, initial=GPIO.LOW)
+GPIO.setup(LIGHT_RELAY_PIN, GPIO.OUT, initial=GPIO.LOW)
+GPIO.setup(FOGGER_RELAY_PIN, GPIO.OUT, initial=GPIO.LOW)
 
-def set_low(pin):
-    GPIO.output(pin, 0)
+gpio_enabled = True
+
+mat_state = OFF
+light_state = OFF
+fogger_state = OFF
+
+def enabled(enabled):
+    gpio_enabled = enabled
+
+def set_mat(on_off):
+    mat_state = on_off
+    if gpio_enabled:
+        GPIO.output(MAT_RELAY_PIN, on_off)
+    return
+
+def set_light(on_off):
+    light_state = on_off
+    if gpio_enabled:
+        GPIO.output(LIGHT_RELAY_PIN, on_off)
+    return
+
+def set_fogger(on_off):
+    fogger_state = on_off
+    if gpio_enabled:
+        GPIO.output(FOGGER_RELAY_PIN, on_off)
+    return
 
 def cleanup():
     GPIO.cleanup()
