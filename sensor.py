@@ -26,10 +26,7 @@ def get_dht_data(dht_sensor):
         return None, None, None
 
     if (temp > 50 and temp <= 120) and (hum > 0 and hum <= 100):
-        global sensor_values
-
-        display.lcd_display_string("{0}: T:{1:0.2f}F H:{2:0.2f}%".format(sensor_number_string, temp, hum), line_number)
-        return hum, temp, "{0}: T:{1:0.2f}F H:{2:0.2f}%".format(sensor_number_string, temp, hum)
+        return hum, temp, "{0}: T:{1:0.2f}F H:{2:0.2f}%".format(dht_sensor.number, temp, hum)
     else:
         print("Bad sensor data")
         return None, None, None
