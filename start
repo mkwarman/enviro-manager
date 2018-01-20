@@ -3,4 +3,8 @@
 source venv/bin/activate
 #export FLASK_APP=enviro-manager.py
 #flask run --host=0.0.0.0
-python3 enviro-manager.py
+if [ "$1" != "" ]; then
+    python3 enviro-manager.py $1
+else
+    python3 enviro-manager.py
+fi

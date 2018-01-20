@@ -1,9 +1,14 @@
 from sensor import Probe, DHT22
 from time import sleep
-from app import app
-from multiprocessing import Process
+#from app import app
+from flask import Flask
+#from multiprocessing import Process
+from threading import Thread
 import RPi_I2C_driver
 import RPi.GPIO as GPIO
+import sys
+
+app = Flask(__name__)
 
 GPIO.setmode(GPIO.BCM)
 
@@ -31,19 +36,46 @@ display = RPi_I2C_driver.lcd()
 probe = Probe(PROBE_DIRECTORY)
 dht1 = DHT22(17, 1)
 dht2 = DHT22(27, 2)
+gpio_enabled = True
+poll_sensors = True
 
 display.lcd_display_string("Data:", 1)
 
+mat_state = OFF
+light_state = OFF
+fogger_state = OFF
+
+probe_temp = 0.0
+sensor_values = [
+    {
+        'temp': 0.0,
+        'hum': 0.0
+    },
+    {
+        'temp': 0.0,
+        'hum': 0.0
+    }
+]
+
+if (len(sys.argv) > 1 and sys.argv[1] == 'false'):
+    gpio_enabled = False
+
 def set_mat(on_off):
-    GPIO.output(MAT_RELAY_PIN, on_off)
+    mat_state = on_off
+    if gpio_enabled:
+        GPIO.output(MAT_RELAY_PIN, on_off)
     return
 
 def set_light(on_off):
-    GPIO.output(LIGHT_RELAY_PIN, on_off)
+    light_state = on_off
+    if gpio_enabled:
+        GPIO.output(LIGHT_RELAY_PIN, on_off)
     return
 
 def set_fogger(on_off):
-    GPIO.output(FOGGER_RELAY_PIN, on_off)
+    fogger_state = on_off
+    if gpio_enabled:
+        GPIO.output(FOGGER_RELAY_PIN, on_off)
     return
 
 def get_probe_data(probe):
@@ -82,17 +114,24 @@ def run_probe(probes):
         print("Not enough data to calculate duty cycle!")
         return
 
+    global probe_temp
+    probe_temp = temp
+
     if temp < MAT_TEMP_LOWER_BOUND:
-        # increase mat duty cycle
-        set_mat(ON)
-        print("Increase mat duty cycle")
+        if (mat_state != ON):
+            set_mat(ON)
+        else:
+            # TODO: increase mat duty cycle
+            print("Increase mat duty cycle")
     elif temp > MAT_TEMP_UPPER_BOUND:
-        # decrease mat duty cycle
-        set_mat(OFF)
-        print("Decrease mat duty cycle")
+        if (mat_state != OFF):
+            set_mat(OFF)
+        else:
+            # TODO: decrease mat duty cycle
+            print("Decrease mat duty cycle")
     else:
         print("No change to mat duty cycle")
-        # no change
+        # TODO: minor duty cycle adjustments
 
 def get_dht_data(dht_sensor):
     line_number = dht_sensor.number + 2
@@ -112,6 +151,11 @@ def get_dht_data(dht_sensor):
         return None, None
 
     if (temp > 50 and temp <= 120) and (hum > 0 and hum <= 100):
+        global sensor_values
+        sensor_values[dht_sensor.number - 1] = {
+            'temp': temp,
+            'hum': hum
+        }
         display.lcd_display_string("{0}: T:{1:0.2f}F H:{2:0.2f}%".format(sensor_number_string, temp, hum), line_number)
         return hum, temp
     else:
@@ -150,28 +194,53 @@ def run_dht(dhts):
         print("Humidity good")
 
     if avg_temp < AMBIENT_TEMP_LOWER_BOUND:
-        set_light(ON)
+        if (light_state != ON):
+            set_light(ON)
+        else:
+            print("increase duty cycle")
+            # TODO: Increase duty cycle
     elif avg_temp > AMBIENT_TEMP_UPPER_BOUND:
-        set_light(OFF)
+        if (light_state != OFF):
+            set_light(OFF)
+        else:
+            print("decrease duty cycle")
+            # TODO: Decrease duty cycle
     else:
+        #TODO: minor duty cycle adjustments
         print("Ambient temp good")
 
 def poll_sensor_loop():
-    while True:
+    while poll_sensors:
         try:
             run_probe([probe])
             sleep(.1)
             run_dht([dht1, dht2])
             sleep(.1)
-        except KeyboardInterrupt:
+        except (KeyboardInterrupt, SystemExit):
             print("Stopping...")
-            GPIO.cleanup()
-            display.lcd_clear()
-            display.backlight(OFF)
             break
 
+    GPIO.cleanup()
+    display.lcd_clear()
+    display.backlight(OFF)
+
+@app.route('/live')
+def live():
+    #return "value: " + str(executed)
+    return "<h1>probe temp: {0:0.2f}</br>".format(probe_temp) \
+            + "sensor1: temp={0:0.2f}F hum={1:0.2f}%</br>".format(sensor_values[0].get('temp'), sensor_values[0].get('hum')) \
+            + "sensor2: temp={0:0.2f}F hum={1:0.2f}%</h1>".format(sensor_values[1].get('temp'), sensor_values[1].get('hum'))
+
 if __name__ == "__main__":
-    process = Process(target=poll_sensor_loop)
-    process.start()
-    app.run(host='0.0.0.0', port=80, use_reloader=False)
-    process.join()
+    try:
+        process = Thread(target=poll_sensor_loop)
+        process.start()
+        #process.join()
+        app.run(host='0.0.0.0', port=80, use_reloader=False)
+        process.join(timeout=10)
+    except (KeyboardInterrupt, SystemExit):
+        print("Stopping...")
+        poll_sensors = False
+        #GPIO.cleanup()
+        #display.lcd_clear()
+        #display.backlight(OFF)
