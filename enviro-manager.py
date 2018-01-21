@@ -88,17 +88,23 @@ def run_probe(probes):
         if temp < MAT_TEMP_LOWER_BOUND:
             print("Max mat duty cycle")
             mat.max_duty_cycle(serialConnection)
-        # Dont mess with duty cycle if state is off
-        elif (gpio.mat_state == ON and (MAT_TEMP_TARGET - previous_temp < MAT_TEMP_TARGET - temp)):
+        elif (previous_temp > temp):
             print("Increase mat duty cycle")
             mat.increase_duty_cycle(serialConnection)
+        elif (temp - previous_temp > 0.1):
+            print("Decrease mat duty cycle due to approach speed")
+            mat.decrease_duty_cycle(serialConnection)
     elif temp > MAT_TEMP_TARGET:
         if temp > MAT_TEMP_UPPER_BOUND:
             gpio.set_mat(OFF)
         # Dont mess with duty cycle if state is off
-        elif (gpio.mat_state == ON and (previous_temp - MAT_TEMP_TARGET < temp - MAT_TEMP_TARGET)):
-            print("Decrease mat duty cycle")
-            mat.decrease_duty_cycle(serialConnection)
+        elif (gpio.mat_state == ON):
+            if (previous_temp < temp):
+                print("Decrease mat duty cycle")
+                mat.decrease_duty_cycle(serialConnection)
+            elif (previous_temp - temp > 0.1):
+                print("Increase mat duty cycle due to approach speed")
+                mat.increase_duty_cycle(serialConnection)
 
 def run_dht(dhts):
     # Support for multiple DHTs
