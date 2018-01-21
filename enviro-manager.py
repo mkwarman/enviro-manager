@@ -210,8 +210,8 @@ def index():
             + "Sensor1 (temperature): temp={0:0.2f}F hum={1:0.2f}%</br>".format(sensor_values[0].get('temp'), sensor_values[0].get('hum')) \
             + "Sensor2 (humidity): temp={0:0.2f}F hum={1:0.2f}%</h3></p>".format(sensor_values[1].get('temp'), sensor_values[1].get('hum')) \
             + "<p><h1>Appliance Status:</h1>" \
-            + "<h3>Mat enabled: " + str(mat_enabled) + " --- Current status: " + ("on" if gpio.mat_state == ON else "off") + " --- Duty cycle: " + mat.duty_cycle + "</br>" \
-            + "Light enabled: " + str(light_enabled) + " --- Current status: " + ("on" if gpio.light_state == ON else "off") + " --- Duty cycle: " + light.duty_cycle + "</br>" \
+            + "<h3>Mat enabled: " + str(mat_enabled) + " --- Current status: " + ("on" if gpio.mat_state == ON else "off") + " --- Duty cycle: " + str(mat.duty_cycle) + "</br>" \
+            + "Light enabled: " + str(light_enabled) + " --- Current status: " + ("on" if gpio.light_state == ON else "off") + " --- Duty cycle: " + str(light.duty_cycle) + "</br>" \
             + "Fogger enabled: " + str(fogger_enabled) + " --- Current status: " + ("on" if gpio.fogger_state == ON else "off") + "</br>" \
             + "</h3></p>"
 
