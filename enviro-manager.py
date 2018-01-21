@@ -32,6 +32,8 @@ ZERO_CROSS_IDENTIFIER = "Z"
 ON = 1
 OFF = 0
 
+TEMPERATURE_APPROACH_DELTA_LIMIT = 0.12
+
 display = RPi_I2C_driver.lcd()
 probe = Probe(PROBE_DIRECTORY)
 dht1 = DHT22(gpio.DHT_SENSOR1_PIN, 1)
@@ -91,7 +93,7 @@ def run_probe(probes):
         elif (previous_temp > temp):
             print("Increase mat duty cycle")
             mat.increase_duty_cycle(serialConnection)
-        elif (temp - previous_temp > 0.1):
+        elif (temp - previous_temp > TEMPERATURE_APPROACH_DELTA_LIMIT):
             print("Decrease mat duty cycle due to approach speed")
             mat.decrease_duty_cycle(serialConnection)
     elif temp > MAT_TEMP_TARGET:
@@ -102,7 +104,7 @@ def run_probe(probes):
             if (previous_temp < temp):
                 print("Decrease mat duty cycle")
                 mat.decrease_duty_cycle(serialConnection)
-            elif (previous_temp - temp > 0.1):
+            elif (previous_temp - temp > TEMPERATURE_APPROACH_DELTA_LIMIT):
                 print("Increase mat duty cycle due to approach speed")
                 mat.increase_duty_cycle(serialConnection)
 
