@@ -32,7 +32,8 @@ ZERO_CROSS_IDENTIFIER = "Z"
 ON = 1
 OFF = 0
 
-TEMPERATURE_APPROACH_DELTA_LIMIT = 0.12
+MAT_TEMPERATURE_APPROACH_DELTA_LIMIT = 0.12
+AMBIENT_TEMPERATURE_APPROACH_DELTA_LIMIT = 0.15
 
 display = RPi_I2C_driver.lcd()
 probe = Probe(PROBE_DIRECTORY)
@@ -98,7 +99,7 @@ def run_probe(probe):
         elif (previous_temp > temp):
             print("Increase mat duty cycle")
             mat.increase_duty_cycle(serialConnection)
-        elif (temp - previous_temp > TEMPERATURE_APPROACH_DELTA_LIMIT):
+        elif (temp - previous_temp > MAT_TEMPERATURE_APPROACH_DELTA_LIMIT):
             print("Decrease mat duty cycle due to approach speed")
             mat.decrease_duty_cycle(serialConnection)
     elif temp > MAT_TEMP_TARGET:
@@ -109,7 +110,7 @@ def run_probe(probe):
             if (previous_temp < temp):
                 print("Decrease mat duty cycle")
                 mat.decrease_duty_cycle(serialConnection)
-            elif (previous_temp - temp > TEMPERATURE_APPROACH_DELTA_LIMIT):
+            elif (previous_temp - temp > MAT_TEMPERATURE_APPROACH_DELTA_LIMIT):
                 print("Increase mat duty cycle due to approach speed")
                 mat.increase_duty_cycle(serialConnection)
 
@@ -143,7 +144,7 @@ def run_dht_temp(dht):
         elif (previous_ambient_temp > ambient_temp):
             print("Increase light duty cycle")
             light.increase_duty_cycle(serialConnection)
-        elif (ambient_temp - previous_ambient_temp > TEMPERATURE_APPROACH_DELTA_LIMIT):
+        elif (ambient_temp - previous_ambient_temp > AMBIENT_TEMPERATURE_APPROACH_DELTA_LIMIT):
             print("Decrease light duty cycle due to approach speed")
             light.decrease_duty_cycle(serialConnection)
     elif ambient_temp > AMBIENT_TEMP_TARGET:
@@ -154,7 +155,7 @@ def run_dht_temp(dht):
             if (previous_ambient_temp < ambient_temp):
                 print("Decrease light duty cycle")
                 light.decrease_duty_cycle(serialConnection)
-            elif (previous_ambient_temp - ambient_temp > TEMPERATURE_APPROACH_DELTA_LIMIT):
+            elif (previous_ambient_temp - ambient_temp > AMBIENT_TEMPERATURE_APPROACH_DELTA_LIMIT):
                 print("Increase light duty cycle due to approach speed")
                 light.increase_duty_cycle(serialConnection)
 
