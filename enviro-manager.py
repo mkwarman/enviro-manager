@@ -17,11 +17,11 @@ PROBE_DIRECTORY = "/sys/bus/w1/devices/28-0317030193ff/w1_slave"
 MAT_TEMP_LOWER_BOUND = 90
 MAT_TEMP_TARGET = 93
 MAT_TEMP_UPPER_BOUND = 96
-AMBIENT_TEMP_LOWER_BOUND = 83
-AMBIENT_TEMP_TARGET = 85
-AMBIENT_TEMP_UPPER_BOUND = 88
-HUMIDITY_UPPER_BOUND = 60
-HUMIDITY_LOWER_BOUND = 40
+AMBIENT_TEMP_LOWER_BOUND = 85
+AMBIENT_TEMP_TARGET = 90
+AMBIENT_TEMP_UPPER_BOUND = 95
+HUMIDITY_UPPER_BOUND = 65
+HUMIDITY_LOWER_BOUND = 45
 
 NULL_ZONE = 1
 
@@ -58,6 +58,8 @@ sensor_values = [
         'hum': 0.0
     }
 ]
+ambient_temp = 0.0
+ambient_hum = 0.0
 
 if (len(sys.argv) > 1 and sys.argv[1] == 'false'):
     gpio.enabled(False)
@@ -143,6 +145,13 @@ def run_dht(dhts):
     avg_temp = temp/sensors
     avg_hum = hum/sensors
 
+    global ambient_temp
+    global ambient_hum
+    previous_temp = ambient_temp
+    #previous_hum = ambient_hum #unused
+    ambient_temp = avg_temp
+    ambient_hum = avg_hum
+
     if avg_hum < HUMIDITY_LOWER_BOUND:
         if (gpio.fogger_state != ON):
             gpio.set_fogger(ON)
@@ -152,21 +161,28 @@ def run_dht(dhts):
     else:
         print("Humidity good")
 
-    if avg_temp < AMBIENT_TEMP_LOWER_BOUND:
-        if (gpio.light_state != ON):
-            gpio.set_light(ON)
-        else:
-            print("increase duty cycle")
-            # TODO: Increase duty cycle
-    elif avg_temp > AMBIENT_TEMP_UPPER_BOUND:
-        if (gpio.light_state != OFF):
+    if temp < AMBIENT_TEMP_TARGET:
+        gpio.set_light(ON)
+        if temp < AMBIENT_TEMP_LOWER_BOUND:
+            print("Max light duty cycle")
+            light.max_duty_cycle(serialConnection)
+        elif (previous_temp > temp):
+            print("Increase light duty cycle")
+            light.increase_duty_cycle(serialConnection)
+        elif (temp - previous_temp > TEMPERATURE_APPROACH_DELTA_LIMIT):
+            print("Decrease light duty cycle due to approach speed")
+            mat.decrease_duty_cycle(serialConnection)
+    elif temp > AMBIENT_TEMP_TARGET:
+        if temp > AMBIENT_TEMP_UPPER_BOUND:
             gpio.set_light(OFF)
-        else:
-            print("decrease duty cycle")
-            # TODO: Decrease duty cycle
-    else:
-        #TODO: minor duty cycle adjustments
-        print("Ambient temp good")
+        # Dont mess with duty cycle if state is off
+        elif (gpio.light_state == ON):
+            if (previous_temp < temp):
+                print("Decrease light duty cycle")
+                light.decrease_duty_cycle(serialConnection)
+            elif (previous_temp - temp > TEMPERATURE_APPROACH_DELTA_LIMIT):
+                print("Increase light duty cycle due to approach speed")
+                light.increase_duty_cycle(serialConnection)
 
 def poll_sensor_loop():
     while poll_sensors:
