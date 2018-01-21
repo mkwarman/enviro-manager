@@ -41,6 +41,10 @@ dht2 = DHT22(gpio.DHT_SENSOR2_PIN, 2)
 mat = DutyCycle(MAT_SERIAL_IDENTIFIER)
 light = DutyCycle(LIGHT_SERIAL_IDENTIFIER)
 
+mat_enabled = False
+light_enabled = True # These two are essentially linked
+fogger_enabled = True # at the moment. Disabling one changes nothing
+
 serialConnection = serial.Serial('/dev/serial0', 9600)
 
 poll_sensors = True
@@ -187,9 +191,11 @@ def run_dht(dhts):
 def poll_sensor_loop():
     while poll_sensors:
         try:
-            run_probe([probe])
+            if (probe_enabled):
+                run_probe([probe])
             #sleep(.1)
-            run_dht([dht1, dht2])
+            if (light_enabled or fogger_enabled):
+                run_dht([dht1, dht2])
             #sleep(.1)
         except (KeyboardInterrupt, SystemExit):
             print("Stopping...")
