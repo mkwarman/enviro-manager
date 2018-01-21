@@ -187,13 +187,13 @@ def poll_sensor_loop():
         try:
             if (mat_enabled):
                 run_probe(probe)
-            #sleep(.1)
+            sleep(.2)
             if (light_enabled):
                 run_dht_temp(dht1_temp)
-            #sleep(.1)
+            sleep(.2)
             if (fogger_enabled):
                 run_dht_humidity(dht2_humidity)
-            #sleep(.1)
+            sleep(.2)
         except (KeyboardInterrupt, SystemExit):
             print("Stopping...")
             break
