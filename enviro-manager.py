@@ -80,6 +80,7 @@ def run_probe(probes):
         return
 
     global probe_temp
+    previous_temp = probe_temp
     probe_temp = temp
 
     if temp < MAT_TEMP_TARGET:
@@ -87,13 +88,15 @@ def run_probe(probes):
         if temp < MAT_TEMP_LOWER_BOUND:
             print("Max mat duty cycle")
             mat.max_duty_cycle(serialConnection)
-        else:
+        # Dont mess with duty cycle if state is off
+        elif (gpio.mat_state == ON and (MAT_TEMP_TARGET - previous_temp < MAT_TEMP_TARGET - temp)):
             print("Increase mat duty cycle")
             mat.increase_duty_cycle(serialConnection)
     elif temp > MAT_TEMP_TARGET:
         if temp > MAT_TEMP_UPPER_BOUND:
             gpio.set_mat(OFF)
-        else:
+        # Dont mess with duty cycle if state is off
+        elif (gpio.mat_state == ON and (previous_temp - MAT_TEMP_TARGET < temp - MAT_TEMP_TARGET)):
             print("Decrease mat duty cycle")
             mat.decrease_duty_cycle(serialConnection)
 
@@ -122,7 +125,7 @@ def run_dht(dhts):
             display.lcd_display_string(display_string, dht.number + 2)
 
     return # short_circuit
-    
+
     if sensors < 1:
         # not enough sensors to continue operation
         # TODO: kill relay?
@@ -161,9 +164,9 @@ def poll_sensor_loop():
     while poll_sensors:
         try:
             run_probe([probe])
-            sleep(.1)
+            #sleep(.1)
             run_dht([dht1, dht2])
-            sleep(.1)
+            #sleep(.1)
         except (KeyboardInterrupt, SystemExit):
             print("Stopping...")
             break
