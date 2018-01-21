@@ -205,13 +205,15 @@ def poll_sensor_loop():
 @app.route('/')
 @app.route('/index')
 def index():
-    return "<h1><p>probe temp: {0:0.2f}</br>".format(probe_temp) \
-            + "sensor1 (temperature): temp={0:0.2f}F hum={1:0.2f}%</br>".format(sensor_values[0].get('temp'), sensor_values[0].get('hum')) \
-            + "sensor2 (humidity): temp={0:0.2f}F hum={1:0.2f}%</p>".format(sensor_values[1].get('temp'), sensor_values[1].get('hum')) \
-            + "<p>Mat enabled: " + str(mat_enabled) + " --- Current status: " + ("on" if gpio.mat_state == ON else "off") + "</br>" \
-            + "Light enabled: " + str(light_enabled) + " --- Current status: " + ("on" if gpio.light_state == ON else "off") + "</br>" \
+    return "<p><h1>Sensor Status:</h1>" \
+            + "<h3>Probe temp: {0:0.2f}</br>".format(probe_temp) \
+            + "Sensor1 (temperature): temp={0:0.2f}F hum={1:0.2f}%</br>".format(sensor_values[0].get('temp'), sensor_values[0].get('hum')) \
+            + "Sensor2 (humidity): temp={0:0.2f}F hum={1:0.2f}%</h3></p>".format(sensor_values[1].get('temp'), sensor_values[1].get('hum')) \
+            + "<p><h1>Appliance Status:</h1>"
+            + "<h3>Mat enabled: " + str(mat_enabled) + " --- Current status: " + ("on" if gpio.mat_state == ON else "off") + " --- Duty cycle: " + mat.duty_cycle + "</br>" \
+            + "Light enabled: " + str(light_enabled) + " --- Current status: " + ("on" if gpio.light_state == ON else "off") + " --- Duty cycle: " + light.duty_cycle + "</br>" \
             + "Fogger enabled: " + str(fogger_enabled) + " --- Current status: " + ("on" if gpio.fogger_state == ON else "off") + "</br>" \
-            + "</p></h1>"
+            + "</h3></p>"
 
 if __name__ == "__main__":
     try:
