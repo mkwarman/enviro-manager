@@ -191,7 +191,7 @@ def run_dht(dhts):
 def poll_sensor_loop():
     while poll_sensors:
         try:
-            if (probe_enabled):
+            if (mat_enabled):
                 run_probe([probe])
             #sleep(.1)
             if (light_enabled or fogger_enabled):
