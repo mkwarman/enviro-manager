@@ -36,8 +36,8 @@ TEMPERATURE_APPROACH_DELTA_LIMIT = 0.12
 
 display = RPi_I2C_driver.lcd()
 probe = Probe(PROBE_DIRECTORY)
-dht1 = DHT22(gpio.DHT_SENSOR1_PIN, 1)
-dht2 = DHT22(gpio.DHT_SENSOR2_PIN, 2)
+dht1_temp = DHT22(gpio.DHT_SENSOR1_PIN, 1)
+dht2_humidity = DHT22(gpio.DHT_SENSOR2_PIN, 2)
 mat = DutyCycle(MAT_SERIAL_IDENTIFIER)
 light = DutyCycle(LIGHT_SERIAL_IDENTIFIER)
 
@@ -52,6 +52,7 @@ poll_sensors = True
 display.lcd_display_string("Data:", 1)
 
 probe_temp = 0.0
+ambient_temp = 0.0
 sensor_values = [
     {
         'temp': 0.0,
@@ -62,12 +63,11 @@ sensor_values = [
         'hum': 0.0
     }
 ]
-max_ambient_temp = 0.0
 
 if (len(sys.argv) > 1 and sys.argv[1] == 'false'):
     gpio.enabled(False)
 
-def run_probe(probes):
+def run_probe(probe):
     """
     # Support for multiple probes
     temp = 0
@@ -113,90 +113,86 @@ def run_probe(probes):
                 print("Increase mat duty cycle due to approach speed")
                 mat.increase_duty_cycle(serialConnection)
 
-def run_dht(dhts):
-    # Support for multiple DHTs
-    temp = 0
-    hum = 0
-    max_hum = 0
-    max_temp = 0
-    sensors = len(dhts)
-
+def run_dht_temp(dht):
     global sensor_values
 
-    for index, dht in enumerate(dhts):
-        dht_hum, dht_temp, display_string = sensor.get_dht_data(dht)
-        if dht_temp and dht_hum:
-            # Only add if sensor returns good data
-            sensor_values[index] = {
-                'temp': dht_temp,
-                'hum': dht_hum
-            }
-            temp += dht_temp
-            hum += dht_hum
-            if dht_temp > max_temp:
-                max_temp = dht_temp
-            if dht_hum > max_hum:
-                max_hum = dht_hum
-        else:
-            sensors -= 1
-
-        if display_string:
-            display.lcd_display_string(display_string, dht.number + 2)
-
-    # Currently both sensors needed
-    if sensors < 2:
-        # not enough sensors to continue operation
-        # TODO: kill relay?
-        print("Not enough sensors to calculate duty cycle!")
+    dht_hum, dht_temp, display_string = sensor.get_dht_data(dht)
+    if dht_temp and dht_hum:
+        # Only add if sensor returns good data
+        sensor_values[dht.number - 1] = {
+            'temp': dht_temp,
+            'hum': dht_hum
+        }
+    else:
+        print("DHT temp sensor didn't return usable data")
         return
 
-    #avg_temp = temp/sensors
-    #avg_hum = hum/sensors
+    if display_string:
+        display.lcd_display_string(display_string, dht.number + 2)
 
-    global max_ambient_temp
-    previous_max_ambient_temp = max_ambient_temp
-    #previous_hum = ambient_hum #unused
-    max_ambient_temp = max_temp
+    global ambient_temp
+    previous_ambient_temp = ambient_temp
+    ambient_temp = max_temp
 
-    if max_hum < HUMIDITY_LOWER_BOUND:
-        gpio.set_fogger(ON)
-        print("Turn on fogger")
-    elif max_hum > HUMIDITY_UPPER_BOUND:
-        print("Turn off fogger")
-        gpio.set_fogger(OFF)
-
-    if max_ambient_temp < AMBIENT_TEMP_TARGET:
+    if ambient_temp < AMBIENT_TEMP_TARGET:
         gpio.set_light(ON)
-        if max_ambient_temp < AMBIENT_TEMP_LOWER_BOUND:
+        if ambient_temp < AMBIENT_TEMP_LOWER_BOUND:
             print("Max light duty cycle")
             light.max_duty_cycle(serialConnection)
         # If temperature falling
-        elif (previous_max_ambient_temp > max_ambient_temp):
+        elif (previous_ambient_temp > ambient_temp):
             print("Increase light duty cycle")
             light.increase_duty_cycle(serialConnection)
-        elif (max_ambient_temp - previous_max_ambient_temp > TEMPERATURE_APPROACH_DELTA_LIMIT):
+        elif (ambient_temp - previous_ambient_temp > TEMPERATURE_APPROACH_DELTA_LIMIT):
             print("Decrease light duty cycle due to approach speed")
             light.decrease_duty_cycle(serialConnection)
-    elif max_ambient_temp > AMBIENT_TEMP_TARGET:
-        if max_ambient_temp > AMBIENT_TEMP_UPPER_BOUND:
+    elif ambient_temp > AMBIENT_TEMP_TARGET:
+        if ambient_temp > AMBIENT_TEMP_UPPER_BOUND:
             gpio.set_light(OFF)
         # Dont mess with duty cycle if state is off
         elif (gpio.light_state == ON):
-            if (previous_max_ambient_temp < max_ambient_temp):
+            if (previous_ambient_temp < ambient_temp):
                 print("Decrease light duty cycle")
                 light.decrease_duty_cycle(serialConnection)
-            elif (previous_max_ambient_temp - max_ambient_temp > TEMPERATURE_APPROACH_DELTA_LIMIT):
+            elif (previous_ambient_temp - ambient_temp > TEMPERATURE_APPROACH_DELTA_LIMIT):
                 print("Increase light duty cycle due to approach speed")
                 light.increase_duty_cycle(serialConnection)
+
+def run_dht_humidity(dht):
+    global sensor_values
+
+    dht_hum, dht_temp, display_string = sensor.get_dht_data(dht)
+    if dht_temp and dht_hum:
+        # Only add if sensor returns good data
+        sensor_values[dht.number - 1] = {
+            'temp': dht_temp,
+            'hum': dht_hum
+        }
+    else:
+        print("DHT humidity sensor didn't return usable data")
+        return
+
+    if display_string:
+        display.lcd_display_string(display_string, dht.number + 2)
+
+    if dht_hum < HUMIDITY_LOWER_BOUND:
+        gpio.set_fogger(ON)
+        print("Turn on fogger")
+    elif dht_hum > HUMIDITY_UPPER_BOUND:
+        print("Turn off fogger")
+        gpio.set_fogger(OFF)
 
 def poll_sensor_loop():
     while poll_sensors:
         try:
             if (mat_enabled):
-                run_probe([probe])
+                run_probe(probe)
             #sleep(.1)
-            if (light_enabled or fogger_enabled):
-                run_dht([dht1, dht2])
+            if (light_enabled):
+                run_dht_temp(dht1_temp)
+            #sleep(.1)
+            if (hum_enabled):
+                run_dht_humidity(dht2_humidity)
             #sleep(.1)
         except (KeyboardInterrupt, SystemExit):
             print("Stopping...")
