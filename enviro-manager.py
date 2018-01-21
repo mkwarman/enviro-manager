@@ -202,12 +202,16 @@ def poll_sensor_loop():
     display.lcd_clear()
     display.backlight(OFF)
 
-@app.route('/live')
-def live():
-    #return "value: " + str(executed)
-    return "<h1>probe temp: {0:0.2f}</br>".format(probe_temp) \
-            + "sensor1: temp={0:0.2f}F hum={1:0.2f}%</br>".format(sensor_values[0].get('temp'), sensor_values[0].get('hum')) \
-            + "sensor2: temp={0:0.2f}F hum={1:0.2f}%</h1>".format(sensor_values[1].get('temp'), sensor_values[1].get('hum'))
+@app.route('/')
+@app.route('/index')
+def index():
+    return "<h1><p>probe temp: {0:0.2f}</br>".format(probe_temp) \
+            + "sensor1 (temperature): temp={0:0.2f}F hum={1:0.2f}%</br>".format(sensor_values[0].get('temp'), sensor_values[0].get('hum')) \
+            + "sensor2 (humidity): temp={0:0.2f}F hum={1:0.2f}%</p>".format(sensor_values[1].get('temp'), sensor_values[1].get('hum')) \
+            + "<p>Mat enabled: " + str(mat_enabled) + " --- Current status: " + ("on" if gpio.mat_state == ON else "off") "</br>" \
+            + "Light enabled: " + str(light_enabled) + " --- Current status: " + ("on" if gpio.light_state == ON else "off") "</br>" \
+            + "Fogger enabled: " + str(fogger_enabled) + " --- Current status: " + ("on" if gpio.fogger_state == ON else "off") "</br>" \
+            + "</p></h1>"
 
 if __name__ == "__main__":
     try:
