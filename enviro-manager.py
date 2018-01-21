@@ -3,12 +3,12 @@ from dht22 import DHT22
 from time import sleep
 from flask import Flask
 from threading import Thread
+from duty_cycle import DutyCycle
 import RPi_I2C_driver
 import gpio
 import sys
 import sensor
 import serial
-import duty_cycle
 
 app = Flask(__name__)
 
@@ -83,18 +83,16 @@ def run_probe(probes):
     probe_temp = temp
 
     if temp < MAT_TEMP_TARGET:
-        if (gpio.mat_state != ON):
-            gpio.set_mat(ON)
+        gpio.set_mat(ON)
         if temp < MAT_TEMP_LOWER_BOUND:
             print("Max mat duty cycle")
-            mat.max_duty_cycle
+            mat.max_duty_cycle(serialConnection)
         else:
             print("Increase mat duty cycle")
             mat.increase_duty_cycle(serialConnection)
-    else temp > MAT_TEMP_TARGET:
+    elif temp > MAT_TEMP_TARGET:
         if temp > MAT_TEMP_UPPER_BOUND:
-            if (gpio.mat_state != OFF):
-                gpio.set_mat(OFF)
+            gpio.set_mat(OFF)
         else:
             print("Decrease mat duty cycle")
             mat.decrease_duty_cycle(serialConnection)
@@ -123,6 +121,8 @@ def run_dht(dhts):
         if display_string:
             display.lcd_display_string(display_string, dht.number + 2)
 
+    return # short_circuit
+    
     if sensors < 1:
         # not enough sensors to continue operation
         # TODO: kill relay?
