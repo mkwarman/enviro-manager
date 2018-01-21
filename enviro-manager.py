@@ -138,8 +138,6 @@ def run_dht(dhts):
         if display_string:
             display.lcd_display_string(display_string, dht.number + 2)
 
-    return # short_circuit
-
     if sensors < 1:
         # not enough sensors to continue operation
         # TODO: kill relay?
