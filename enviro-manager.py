@@ -62,8 +62,7 @@ sensor_values = [
         'hum': 0.0
     }
 ]
-ambient_temp = 0.0
-ambient_hum = 0.0
+max_ambient_temp = 0.0
 
 if (len(sys.argv) > 1 and sys.argv[1] == 'false'):
     gpio.enabled(False)
@@ -118,6 +117,8 @@ def run_dht(dhts):
     # Support for multiple DHTs
     temp = 0
     hum = 0
+    max_hum = 0
+    max_temp = 0
     sensors = len(dhts)
 
     global sensor_values
@@ -132,57 +133,59 @@ def run_dht(dhts):
             }
             temp += dht_temp
             hum += dht_hum
+            if dht_temp > max_temp:
+                max_temp = dht_temp
+            if dht_hum > max_hum:
+                max_hum = dht_hum
         else:
             sensors -= 1
 
         if display_string:
             display.lcd_display_string(display_string, dht.number + 2)
 
-    return # short_circuit
-
-    if sensors < 1:
+    # Currently both sensors needed
+    if sensors < 2:
         # not enough sensors to continue operation
         # TODO: kill relay?
         print("Not enough sensors to calculate duty cycle!")
         return
 
-    avg_temp = temp/sensors
-    avg_hum = hum/sensors
+    #avg_temp = temp/sensors
+    #avg_hum = hum/sensors
 
-    global ambient_temp
-    global ambient_hum
-    previous_temp = ambient_temp
+    global max_ambient_temp
+    previous_max_ambient_temp = max_ambient_temp
     #previous_hum = ambient_hum #unused
-    ambient_temp = avg_temp
-    ambient_hum = avg_hum
+    max_ambient_temp = max_temp
 
-    if avg_hum < HUMIDITY_LOWER_BOUND:
+    if max_hum < HUMIDITY_LOWER_BOUND:
         gpio.set_fogger(ON)
         print("Turn on fogger")
-    elif avg_hum > HUMIDITY_UPPER_BOUND:
+    elif max_hum > HUMIDITY_UPPER_BOUND:
         print("Turn off fogger")
         gpio.set_fogger(OFF)
 
-    if avg_temp < AMBIENT_TEMP_TARGET:
+    if max_ambient_temp < AMBIENT_TEMP_TARGET:
         gpio.set_light(ON)
-        if avg_temp < AMBIENT_TEMP_LOWER_BOUND:
+        if max_ambient_temp < AMBIENT_TEMP_LOWER_BOUND:
             print("Max light duty cycle")
             light.max_duty_cycle(serialConnection)
-        elif (previous_temp > avg_temp):
+        # If temperature falling
+        elif (previous_max_ambient_temp > max_ambient_temp):
             print("Increase light duty cycle")
             light.increase_duty_cycle(serialConnection)
-        elif (avg_temp - previous_temp > TEMPERATURE_APPROACH_DELTA_LIMIT):
+        elif (max_ambient_temp - previous_max_ambient_temp > TEMPERATURE_APPROACH_DELTA_LIMIT):
             print("Decrease light duty cycle due to approach speed")
-            mat.decrease_duty_cycle(serialConnection)
-    elif avg_temp > AMBIENT_TEMP_TARGET:
-        if avg_temp > AMBIENT_TEMP_UPPER_BOUND:
+            light.decrease_duty_cycle(serialConnection)
+    elif max_ambient_temp > AMBIENT_TEMP_TARGET:
+        if max_ambient_temp > AMBIENT_TEMP_UPPER_BOUND:
             gpio.set_light(OFF)
         # Dont mess with duty cycle if state is off
         elif (gpio.light_state == ON):
-            if (previous_temp < avg_temp):
+            if (previous_max_ambient_temp < max_ambient_temp):
                 print("Decrease light duty cycle")
                 light.decrease_duty_cycle(serialConnection)
-            elif (previous_temp - avg_temp > TEMPERATURE_APPROACH_DELTA_LIMIT):
+            elif (previous_max_ambient_temp - max_ambient_temp > TEMPERATURE_APPROACH_DELTA_LIMIT):
                 print("Increase light duty cycle due to approach speed")
                 light.increase_duty_cycle(serialConnection)
 
