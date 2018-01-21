@@ -132,7 +132,7 @@ def run_dht_temp(dht):
 
     global ambient_temp
     previous_ambient_temp = ambient_temp
-    ambient_temp = max_temp
+    ambient_temp = dht_temp
 
     if ambient_temp < AMBIENT_TEMP_TARGET:
         gpio.set_light(ON)
@@ -191,7 +191,7 @@ def poll_sensor_loop():
             if (light_enabled):
                 run_dht_temp(dht1_temp)
             #sleep(.1)
-            if (hum_enabled):
+            if (fogger_enabled):
                 run_dht_humidity(dht2_humidity)
             #sleep(.1)
         except (KeyboardInterrupt, SystemExit):
@@ -218,3 +218,7 @@ if __name__ == "__main__":
     except (KeyboardInterrupt, SystemExit):
         print("Stopping...")
         poll_sensors = False
+
+    except Exception as error:
+        GPIO.cleanup()
+        raise error
