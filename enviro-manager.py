@@ -157,34 +157,32 @@ def run_dht(dhts):
     ambient_hum = avg_hum
 
     if avg_hum < HUMIDITY_LOWER_BOUND:
-        if (gpio.fogger_state != ON):
-            gpio.set_fogger(ON)
+        gpio.set_fogger(ON)
+        print("Turn on fogger")
     elif avg_hum > HUMIDITY_UPPER_BOUND:
-        if (gpio.fogger_state != OFF):
-            gpio.set_fogger(OFF)
-    else:
-        print("Humidity good")
+        print("Turn off fogger")
+        gpio.set_fogger(OFF)
 
-    if temp < AMBIENT_TEMP_TARGET:
+    if avg_temp < AMBIENT_TEMP_TARGET:
         gpio.set_light(ON)
-        if temp < AMBIENT_TEMP_LOWER_BOUND:
+        if avg_temp < AMBIENT_TEMP_LOWER_BOUND:
             print("Max light duty cycle")
             light.max_duty_cycle(serialConnection)
-        elif (previous_temp > temp):
+        elif (previous_temp > avg_temp):
             print("Increase light duty cycle")
             light.increase_duty_cycle(serialConnection)
-        elif (temp - previous_temp > TEMPERATURE_APPROACH_DELTA_LIMIT):
+        elif (avg_temp - previous_temp > TEMPERATURE_APPROACH_DELTA_LIMIT):
             print("Decrease light duty cycle due to approach speed")
             mat.decrease_duty_cycle(serialConnection)
-    elif temp > AMBIENT_TEMP_TARGET:
-        if temp > AMBIENT_TEMP_UPPER_BOUND:
+    elif avg_temp > AMBIENT_TEMP_TARGET:
+        if avg_temp > AMBIENT_TEMP_UPPER_BOUND:
             gpio.set_light(OFF)
         # Dont mess with duty cycle if state is off
         elif (gpio.light_state == ON):
-            if (previous_temp < temp):
+            if (previous_temp < avg_temp):
                 print("Decrease light duty cycle")
                 light.decrease_duty_cycle(serialConnection)
-            elif (previous_temp - temp > TEMPERATURE_APPROACH_DELTA_LIMIT):
+            elif (previous_temp - avg_temp > TEMPERATURE_APPROACH_DELTA_LIMIT):
                 print("Increase light duty cycle due to approach speed")
                 light.increase_duty_cycle(serialConnection)
 
