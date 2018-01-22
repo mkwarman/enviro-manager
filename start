@@ -1,10 +1,13 @@
 #!/bin/bash
 
-source venv/bin/activate
-#export FLASK_APP=enviro-manager.py
-#flask run --host=0.0.0.0
-if [ "$1" != "" ]; then
-    python3 enviro-manager.py $1
-else
-    python3 enviro-manager.py
+SESSION=env
+
+if $1 && $(tmux has-session -t $SESSION 2> /dev/null); then
+    echo 'Service already running' >&2
+    return 1
 fi
+if $1; then
+    tmux new-session -d -s $SESSION
+    tmux send-keys -t $SESSION ./start_python C-m
+fi
+tmux attach-session -t $SESSION

@@ -1,3 +1,8 @@
+# Custom Stuff
+attach
+start
+start_python
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
