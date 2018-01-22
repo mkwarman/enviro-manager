@@ -59,3 +59,9 @@ class DutyCycle:
             return
         self.duty_cycle = DUTY_CYCLE_MIN
         self.send_to_arduino(serialConnection)
+    
+    def get_duty_cycle_percentage(self):
+        duty_cycle_range = DUTY_CYCLE_MAX - DUTY_CYCLE_MIN
+        current_duty_cycle_in_range = self.duty_cycle - DUTY_CYCLE_MIN
+
+        return 100 * (current_duty_cycle_in_range / duty_cycle_range)

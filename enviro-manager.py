@@ -250,16 +250,16 @@ def poll_sensor_loop():
 @app.route('/index')
 def index():
     return "<p><h1>Sensor Status:</h1>" \
-            + "<h2>Probe temp: {0:0.2f}</br>".format(probe_temp) \
+            + "<h2>Probe temp: {0:0.2f} (target: {1}F)</br>".format(probe_temp, MAT_TEMP_TARGET) \
             + (("<strong>" + probe.disabled_string + "</strong>") if probe.disabled else "") \
-            + "Sensor1 (temperature): temp={0:0.2f}F hum={1:0.2f}%</br>".format(sensor_values[0].get('temp'), sensor_values[0].get('hum')) \
+            + "Sensor1 (temperature): temp={0:0.2f}F hum={1:0.2f}% (target temperature: {2}F)</br>".format(sensor_values[0].get('temp'), sensor_values[0].get('hum'), AMBIENT_TEMP_TARGET) \
             + (("<strong>" + dht1_temp.disabled_string + "</strong>") if dht1_temp.disabled else "") \
-            + "Sensor2 (humidity): temp={0:0.2f}F hum={1:0.2f}%</h2></p>".format(sensor_values[1].get('temp'), sensor_values[1].get('hum')) \
+            + "Sensor2 (humidity): temp={0:0.2f}F hum={1:0.2f}% (target humidity range: {2}% to {3}%)</h2></p>".format(sensor_values[1].get('temp'), sensor_values[1].get('hum'), HUMIDITY_LOWER_BOUND, HUMIDITY_UPPER_BOUND) \
             + (("<strong>" + dht2_humidity.disabled_string + "</strong>") if dht2_humidity.disabled else "") \
             + "<p><h1>Appliance Status:</h1>" \
-            + "<h2>Mat enabled: " + str(mat_enabled) + " --- Current status: " + ("on" if gpio.mat_state == ON else "off") + " --- Duty cycle: " + str(mat.duty_cycle) + "</br>" \
-            + "Light enabled: " + str(light_enabled) + " --- Current status: " + ("on" if gpio.light_state == ON else "off") + " --- Duty cycle: " + str(light.duty_cycle) + "</br>" \
-            + "Fogger enabled: " + str(fogger_enabled) + " --- Current status: " + ("on" if gpio.fogger_state == ON else "off") + "</br>" \
+            + "<h2>Mat enabled: {0} --- Current status: {1} --- Duty Cycle: {2} (about {3:0.2f}%)</br>".format(mat_enabled, ("on" if gpio.mat_state == ON else "off"), str(mat.duty_cycle), mat.get_duty_cycle_percentage()) \
+            + "Light enabled: {0} --- Current status: {1} --- Duty Cycle: {2} (about {3:0.2f}%)</br>".format(light_enabled, ("on" if gpio.light_state == ON else "off"), str(light.duty_cycle), light.get_duty_cycle_percentage()) \
+            + "Fogger enabled: {0} --- Current status: {1}</br>".format(fogger_enabled, ("on" if gpio.fogger_state == ON else "off")) \
             + "</h2></p>"
 
 @app.route('/test_alert')
