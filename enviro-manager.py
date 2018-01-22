@@ -9,21 +9,27 @@ import gpio
 import sys
 import sensor
 import serial
+import requests
+import os
 
 app = Flask(__name__)
 
+# Environment vars
+PUSHBULLET_TOKEN = os.environ.get('PUSHBULLET_TOKEN') or None
+
+PUSHBULLET_PUSH_URL = 'https://api.pushbullet.com/v2/pushes'
 PROBE_DIRECTORY = "/sys/bus/w1/devices/28-0317030193ff/w1_slave"
 
 MAT_TEMP_LOWER_BOUND = 90
 MAT_TEMP_TARGET = 93
 MAT_TEMP_UPPER_BOUND = 96
+MAT_TEMP_DANGER_ZONE = 100
 AMBIENT_TEMP_LOWER_BOUND = 85
 AMBIENT_TEMP_TARGET = 90
 AMBIENT_TEMP_UPPER_BOUND = 95
+AMBIENT_TEMP_DANGER_ZONE = 100
 HUMIDITY_UPPER_BOUND = 65
 HUMIDITY_LOWER_BOUND = 45
-
-NULL_ZONE = 1
 
 MAT_SERIAL_IDENTIFIER = "M"
 LIGHT_SERIAL_IDENTIFIER = "L"
@@ -31,6 +37,8 @@ ZERO_CROSS_IDENTIFIER = "Z"
 
 ON = 1
 OFF = 0
+
+CONCURRENT_READ_FAILURE_ALERT_THRESHOLD = 5
 
 MAT_TEMPERATURE_APPROACH_DELTA_LIMIT = 0.12
 AMBIENT_TEMPERATURE_APPROACH_DELTA_LIMIT = 0.2
@@ -65,8 +73,20 @@ sensor_values = [
     }
 ]
 
+probe_read_failures = 0
+dht_temp_read_failures = 0
+
 if (len(sys.argv) > 1 and sys.argv[1] == 'false'):
     gpio.enabled(False)
+
+def send_alert(title, body):
+    payload = '{"body": \"' + body + '\", "title": \"' + title + '\", "type": "note"}'
+    headers = {'Access-Token': PUSHBULLET_TOKEN, 'Content-Type': 'application/json'}
+    url = PUSHBULLET_PUSH_URL
+    print("Attempting to send alert with title: \"" + title + "\" and body:\n" + body)
+    r = requests.post(url, data=payload, headers=headers)
+    print("response: " + r.text)
+    return r
 
 def run_probe(probe):
     """
@@ -78,14 +98,21 @@ def run_probe(probe):
 
     avg_temp = temp/len(probes)
     """
+    global probe_read_failures
 
     temp, display_string = sensor.get_probe_data(probe)
     display.lcd_display_string(display_string, 2)
 
     if not temp:
+        probe_read_failures += 1
+        if probe_read_failures > CONCURRENT_READ_FAILURE_ALERT_THRESHOLD:
+            send_alert("Read Error", str(probe_read_failures) + " probe read failures in a row")
+
         # no useable data
         print("Not enough data to calculate duty cycle!")
         return
+    elif probe_read_failures != 0:
+        probe_read_failures = 0
 
     global probe_temp
     previous_temp = probe_temp
@@ -105,6 +132,8 @@ def run_probe(probe):
     elif temp > MAT_TEMP_TARGET:
         if temp > MAT_TEMP_UPPER_BOUND:
             gpio.set_mat(OFF)
+            if temp > MAT_TEMP_DANGER_ZONE:
+                send_alert("Temperature Alert", "Mat temperature too high: " + str(temp))
         # Dont mess with duty cycle if state is off
         elif (gpio.mat_state == ON):
             if (previous_temp < temp):
@@ -116,6 +145,7 @@ def run_probe(probe):
 
 def run_dht_temp(dht):
     global sensor_values
+    global dht_temp_read_failures
 
     dht_hum, dht_temp, display_string = sensor.get_dht_data(dht)
     if dht_temp and dht_hum:
@@ -124,9 +154,15 @@ def run_dht_temp(dht):
             'temp': dht_temp,
             'hum': dht_hum
         }
+        if dht_temp_read_failures != 0:
+            dht_temp_read_failures = 0
     else:
+        dht_temp_read_failures += 1
+        if dht_temp_read_failures > CONCURRENT_READ_FAILURE_ALERT_THRESHOLD:
+            send_alert("Read Error", str(dht_temp_read_failures) + " temp DHT read failures in a row")
         print("DHT temp sensor didn't return usable data")
         return
+
 
     if display_string:
         display.lcd_display_string(display_string, dht.number + 2)
@@ -150,6 +186,8 @@ def run_dht_temp(dht):
     elif ambient_temp > AMBIENT_TEMP_TARGET:
         if ambient_temp > AMBIENT_TEMP_UPPER_BOUND:
             gpio.set_light(OFF)
+            if ambient_temp > AMBIENT_TEMP_DANGER_ZONE:
+                send_alert("Temperature Alert", "Ambient temperature too high: " + str(ambient_temp))
         # Dont mess with duty cycle if state is off
         elif (gpio.light_state == ON):
             if (previous_ambient_temp < ambient_temp):
@@ -199,6 +237,11 @@ def poll_sensor_loop():
             print("Stopping...")
             break
 
+        except Exception as error:
+            send_alert("Exception occurred", "Uncaught exception occurred. Stack trace to follow (hopefully)")
+            send_alert("Exception:", str(error))
+            pass
+
     gpio.cleanup()
     display.lcd_clear()
     display.backlight(OFF)
@@ -216,6 +259,15 @@ def index():
             + "Fogger enabled: " + str(fogger_enabled) + " --- Current status: " + ("on" if gpio.fogger_state == ON else "off") + "</br>" \
             + "</h2></p>"
 
+@app.route('/test_alert')
+def test_alert():
+    send_alert("Test Alert", "Test alert message requested")
+    return "Ok"
+
+@app.route('/test_exception')
+def test_exception():
+    raise Exception("Test exception requested")
+
 if __name__ == "__main__":
     try:
         process = Thread(target=poll_sensor_loop)
@@ -227,5 +279,7 @@ if __name__ == "__main__":
         poll_sensors = False
 
     except Exception as error:
+        send_alert("Exception occurred", "Uncaught exception occurred. Stack trace to follow (hopefully)")
+        send_alert("Exception:", str(error))
         GPIO.cleanup()
         raise error
