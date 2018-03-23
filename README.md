@@ -1,0 +1,3 @@
+# Enviro-Manager
+
+I know this code is in serious need of refactoring and cleaning (and, yeah, an *actual* readme), but I really needed to move on to other stuff around the time of its completion. I'll fix it one day...
