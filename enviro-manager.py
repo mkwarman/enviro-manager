@@ -50,7 +50,9 @@ dht2_humidity = DHT22(gpio.DHT_SENSOR2_PIN, 2)
 mat = DutyCycle(MAT_SERIAL_IDENTIFIER)
 light = DutyCycle(LIGHT_SERIAL_IDENTIFIER)
 
-mat_enabled = False
+light.duty_cycle_delta = 10
+
+mat_enabled = True
 light_enabled = True # These two are essentially linked
 fogger_enabled = True # at the moment. Disabling one changes nothing
 
