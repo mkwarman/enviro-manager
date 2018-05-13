@@ -9,7 +9,7 @@ class DHT22:
     sensor = Adafruit_DHT.DHT22
     concurrent_failures = 0
     disabled = False
-    last_updated = datetime.datetime(0, 0, 0)
+    last_updated = None
 
     def __init__(self, pin, number):
         self.pin = pin
