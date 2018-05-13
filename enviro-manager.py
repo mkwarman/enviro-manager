@@ -60,8 +60,6 @@ serialConnection = serial.Serial('/dev/serial0', 9600)
 
 poll_sensors = True
 
-display.lcd_display_string("Data:", 1)
-
 probe_temp = 0.0
 ambient_temp = 0.0
 sensor_values = [
@@ -74,6 +72,9 @@ sensor_values = [
         'hum': 0.0
     }
 ]
+
+display_status_indicators=["-", "\\", "|", "/"]
+display_status_current_indicator = 0
 
 if (len(sys.argv) > 1 and sys.argv[1] == 'false'):
     gpio.enabled(False)
@@ -98,7 +99,7 @@ def run_probe(probe):
     avg_temp = temp/len(probes)
     """
     temp, display_string = sensor.get_probe_data(probe)
-    display.lcd_display_string(display_string, 2)
+    send_to_display(display_string, 2)
 
     if not temp:
         if probe.concurrent_failures > CONCURRENT_READ_FAILURE_ALERT_THRESHOLD:
@@ -157,7 +158,7 @@ def run_dht_temp(dht):
 
 
     if display_string:
-        display.lcd_display_string(display_string, dht.number + 2)
+        send_to_display(display_string, dht.number + 2)
 
     global ambient_temp
     previous_ambient_temp = ambient_temp
@@ -204,7 +205,7 @@ def run_dht_humidity(dht):
         return
 
     if display_string:
-        display.lcd_display_string(display_string, dht.number + 2)
+        send_to_display(display_string, dht.number + 2)
 
     if dht_hum < HUMIDITY_LOWER_BOUND:
         gpio.set_fogger(ON)
@@ -237,6 +238,17 @@ def poll_sensor_loop():
     gpio.cleanup()
     display.lcd_clear()
     display.backlight(OFF)
+
+def send_to_display(text, line):
+    if display_status_current_indicator < len(display_status_indicators):
+        display_status_current_indicator = 0
+    else:
+        display_status_current_indicator += 1
+    line_one = "Data:              " + display_status_indicators[display_status_current_indicator]
+    display.lcd_display_string(line_one, 1)
+
+    display.lcd_display_string(text, line)
+
 
 @app.route('/')
 @app.route('/index')
