@@ -13,10 +13,10 @@
             </tr>
             {% for sensor in sensors %}
             <tr>
-                <td>sensor.name</td>
-                <td>sensor.temperature</td> 
-                <td>sensor.humidity</td>
-                <td>sensor.last_updated</td>
+                <td>{{ sensor.name }}</td>
+                <td>{{ sensor.temperature }}</td> 
+                <td>{{ sensor.humidity }}</td>
+                <td>{{ sensor.last_updated }}</td>
             </tr>
             {% endfor %}
         </table>
