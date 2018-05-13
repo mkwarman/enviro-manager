@@ -4,7 +4,7 @@ from time import sleep
 from flask import Flask
 from threading import Thread
 from duty_cycle import DutyCycle
-import RPi_I2C_driver
+from display import Display
 import gpio
 import sys
 import sensor
@@ -43,7 +43,7 @@ CONCURRENT_READ_FAILURE_ALERT_THRESHOLD = 10
 MAT_TEMPERATURE_APPROACH_DELTA_LIMIT = 0.12
 AMBIENT_TEMPERATURE_APPROACH_DELTA_LIMIT = 0.2
 
-display = RPi_I2C_driver.lcd()
+display = Display()
 probe = Probe(PROBE_DIRECTORY)
 dht1_temp = DHT22(gpio.DHT_SENSOR1_PIN, 1)
 dht2_humidity = DHT22(gpio.DHT_SENSOR2_PIN, 2)
@@ -73,9 +73,6 @@ sensor_values = [
     }
 ]
 
-display_status_indicators=["-", "\\", "|", "/"]
-display_status_current_indicator = 0
-
 if (len(sys.argv) > 1 and sys.argv[1] == 'false'):
     gpio.enabled(False)
 
@@ -99,7 +96,7 @@ def run_probe(probe):
     avg_temp = temp/len(probes)
     """
     temp, display_string = sensor.get_probe_data(probe)
-    send_to_display(display_string, 2)
+    display.update(display_string, 2)
 
     if not temp:
         if probe.concurrent_failures > CONCURRENT_READ_FAILURE_ALERT_THRESHOLD:
@@ -158,7 +155,7 @@ def run_dht_temp(dht):
 
 
     if display_string:
-        send_to_display(display_string, dht.number + 2)
+        display.update(display_string, dht.number + 2)
 
     global ambient_temp
     previous_ambient_temp = ambient_temp
@@ -205,7 +202,7 @@ def run_dht_humidity(dht):
         return
 
     if display_string:
-        send_to_display(display_string, dht.number + 2)
+        display.update(display_string, dht.number + 2)
 
     if dht_hum < HUMIDITY_LOWER_BOUND:
         gpio.set_fogger(ON)
@@ -236,19 +233,7 @@ def poll_sensor_loop():
             pass
 
     gpio.cleanup()
-    display.lcd_clear()
-    display.backlight(OFF)
-
-def send_to_display(text, line):
-    if display_status_current_indicator < len(display_status_indicators):
-        display_status_current_indicator = 0
-    else:
-        display_status_current_indicator += 1
-    line_one = "Data:              " + display_status_indicators[display_status_current_indicator]
-    display.lcd_display_string(line_one, 1)
-
-    display.lcd_display_string(text, line)
-
+    display.off()
 
 @app.route('/')
 @app.route('/index')
