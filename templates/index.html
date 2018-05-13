@@ -7,15 +7,19 @@
         <table style="width:100%">
             <tr>
                 <th>Sensor</th>
-                <th>Temperature</th> 
+                <th>Temperature</th>
+                <th>Target Temperature</th>
                 <th>Humidity</th>
+                <th>Target Humidity</th>
                 <th>Last Updated</th>
             </tr>
             {% for sensor in sensors %}
             <tr>
                 <td>{{ sensor.name }}</td>
-                <td>{{ sensor.temperature }}</td> 
+                <td>{{ sensor.temperature }}</td>
+                <td>{{ sensor.target_temperature }}</td>
                 <td>{{ sensor.humidity }}</td>
+                <td>{{ sensor.target_humidity }}</td>
                 <td>{{ sensor.last_updated }}</td>
             </tr>
             {% endfor %}
