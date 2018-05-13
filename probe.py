@@ -9,7 +9,7 @@ class Probe:
     concurrent_failures = 0
     disabled = False
     disabled_string = "Probe disabled"
-    last_updated = None
+    last_updated = datetime.datetime(0, 0, 0)
 
     def __init__(self, path):
         self.path = path
