@@ -10,11 +10,13 @@ class DHT22:
     concurrent_failures = 0
     disabled = False
     last_updated = None
+    name = ""
 
-    def __init__(self, pin, number):
+    def __init__(self, pin, number, name):
         self.pin = pin
         self.number = number
         self.disabled_string = "Sensor " + str(number) + " disabled"
+        self.name = name
 
     def get_data_c(self):
         humidity, temperature_c = Adafruit_DHT.read_retry(self.sensor, self.pin, DHT22_RETRIES)

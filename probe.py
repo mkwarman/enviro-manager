@@ -10,9 +10,11 @@ class Probe:
     disabled = False
     disabled_string = "Probe disabled"
     last_updated = None
+    name = ""
 
-    def __init__(self, path):
+    def __init__(self, path, name):
         self.path = path
+        self.name = name
 
     def get_temp_c(self):
         try:

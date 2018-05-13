@@ -1,7 +1,7 @@
 from probe import Probe
 from dht22 import DHT22
 from time import sleep
-from flask import Flask
+from flask import Flask, render_template
 from threading import Thread
 from duty_cycle import DutyCycle
 from display import Display
@@ -45,9 +45,9 @@ MAT_TEMPERATURE_APPROACH_DELTA_LIMIT = 0.12
 AMBIENT_TEMPERATURE_APPROACH_DELTA_LIMIT = 0.2
 
 display = Display()
-probe = Probe(PROBE_DIRECTORY)
-dht1_temp = DHT22(gpio.DHT_SENSOR1_PIN, 1)
-dht2_humidity = DHT22(gpio.DHT_SENSOR2_PIN, 2)
+probe = Probe(PROBE_DIRECTORY, 'Probe')
+dht1_temp = DHT22(gpio.DHT_SENSOR1_PIN, 1, 'Sensor1 (temperature)')
+dht2_humidity = DHT22(gpio.DHT_SENSOR2_PIN, 2, 'Sensor2 (humidity)')
 mat = DutyCycle(MAT_SERIAL_IDENTIFIER)
 light = DutyCycle(LIGHT_SERIAL_IDENTIFIER)
 
@@ -235,6 +235,37 @@ def poll_sensor_loop():
 
     gpio.cleanup()
     display.off()
+
+@app.route('/new')
+def new():
+    probe_last_updated = "{0:%H:%M:%S %Y-%m-%d} --- {1} seconds ago" \
+            .format(probe.last_updated, (now - probe.last_updated).seconds) if probe.last_updated else "never"
+    dht1_temp_last_updated = "{0:%H:%M:%S %Y-%m-%d} --- {1} seconds ago" \
+            .format(dht1_temp.last_updated, (now - dht1_temp.last_updated).seconds) if dht1_temp.last_updated else "never"
+    dht2_humidity_last_updated = "{0:%H:%M:%S %Y-%m-%d} --- {1} seconds ago" \
+            .format(dht2_humidity.last_updated, (now - dht2_humidity.last_updated).seconds) if dht2_humidity.last_updated else "never"
+    sensors = [
+        {
+            'name': probe.name,
+            'temperature': probe_temp,
+            'humidity': 'n/a',
+            'last_updated': probe_last_updated
+        },
+        {
+            'name': dht1_temp.name,
+            'temperature': sensor_values[0].get('temp'),
+            'humidity': sensor_values[0].get('hum'),
+            'last_updated': dht1_temp_last_updated
+        },
+        {
+            'name': probe.name,
+            'temperature': sensor_values[1].get('temp'),
+            'humidity': sensor_values[1].get('hum'),
+            'last_updated': dht2_humidity_last_updated
+        }
+    ]
+
+    return render_template('index.html', sensors=sensors)
 
 @app.route('/')
 @app.route('/index')
