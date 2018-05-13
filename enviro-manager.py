@@ -238,12 +238,15 @@ def poll_sensor_loop():
 @app.route('/')
 @app.route('/index')
 def index():
+    probe_last_updated = "{0:%H:%M:%S %Y-%m-%d}".format(probe.last_updated) if probe.last_updated else "never"
+    dht1_temp_last_updated = "{0:%H:%M:%S %Y-%m-%d}".format(dht1_temp.last_updated) if dht1_temp.last_updated else "never"
+    dht2_humidity_last_updated = "{0:%H:%M:%S %Y-%m-%d}".format(dht2_humidity.last_updated) if dht2_humidity.last_updated else "never"
     return "<p><h1>Sensor Status:</h1>" \
-            + "<h2>Probe temp: {0:0.2f} (target: {1}F) --- Last updated: {2:%H:%M:%S %Y-%m-%d}</br>".format(probe_temp, MAT_TEMP_TARGET, probe.last_updated or "never") \
+            + "<h2>Probe temp: {0:0.2f} (target: {1}F) --- Last updated: {2}</br>".format(probe_temp, MAT_TEMP_TARGET, probe_last_updated) \
             + (("<strong>" + probe.disabled_string + "</strong>") if probe.disabled else "") \
-            + "Sensor1 (temperature): temp={0:0.2f}F hum={1:0.2f}% (target temperature: {2}F) --- Last updated: {3:%H:%M:%S %Y-%m-%d}</br>".format(sensor_values[0].get('temp'), sensor_values[0].get('hum'), AMBIENT_TEMP_TARGET, dht1_temp.last_updated or "never") \
+            + "Sensor1 (temperature): temp={0:0.2f}F hum={1:0.2f}% (target temperature: {2}F) --- Last updated: {3}</br>".format(sensor_values[0].get('temp'), sensor_values[0].get('hum'), AMBIENT_TEMP_TARGET, dht1_temp_last_updated) \
             + (("<strong>" + dht1_temp.disabled_string + "</strong>") if dht1_temp.disabled else "") \
-            + "Sensor2 (humidity): temp={0:0.2f}F hum={1:0.2f}% (target humidity range: {2}% to {3}%) --- Last updated: {4:%H:%M:%S %Y-%m-%d}</h2></p>".format(sensor_values[1].get('temp'), sensor_values[1].get('hum'), HUMIDITY_LOWER_BOUND, HUMIDITY_UPPER_BOUND, dht2_humidity.last_updated or "never") \
+            + "Sensor2 (humidity): temp={0:0.2f}F hum={1:0.2f}% (target humidity range: {2}% to {3}%) --- Last updated: {4}</h2></p>".format(sensor_values[1].get('temp'), sensor_values[1].get('hum'), HUMIDITY_LOWER_BOUND, HUMIDITY_UPPER_BOUND, dht2_humidity_last_updated) \
             + (("<strong>" + dht2_humidity.disabled_string + "</strong>") if dht2_humidity.disabled else "") \
             + "<p><h1>Appliance Status:</h1>" \
             + "<h2>Mat enabled: {0} --- Current status: {1} --- Duty Cycle: {2} (about {3:0.2f}%)</br>".format(mat_enabled, ("on" if gpio.mat_state == ON else "off"), str(mat.duty_cycle), mat.get_duty_cycle_percentage()) \
