@@ -238,6 +238,7 @@ def poll_sensor_loop():
 
 @app.route('/new')
 def new():
+    now = datetime.datetime.now()
     probe_last_updated = "{0:%H:%M:%S %Y-%m-%d} --- {1} seconds ago" \
             .format(probe.last_updated, (now - probe.last_updated).seconds) if probe.last_updated else "never"
     dht1_temp_last_updated = "{0:%H:%M:%S %Y-%m-%d} --- {1} seconds ago" \
