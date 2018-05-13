@@ -1,4 +1,5 @@
 import Adafruit_DHT
+import time
 
 DHT22_RETRIES = 10
 TRIES_BEFORE_DISABLE = 10
@@ -8,6 +9,7 @@ class DHT22:
     sensor = Adafruit_DHT.DHT22
     concurrent_failures = 0
     disabled = False
+    last_updated = None
 
     def __init__(self, pin, number):
         self.pin = pin
@@ -19,9 +21,11 @@ class DHT22:
         if not (isinstance(humidity, float) and isinstance(temperature_c, float)):
             self.increment_read_failures()
             raise RuntimeError('Sensor poll failed')
-        elif self.concurrent_failures != 0:
-            print("resetting failures")
-            self.concurrent_failures = 0
+        else:
+            self.last_updated = time.localtime()
+            if self.concurrent_failures != 0:
+                print("resetting failures")
+                self.concurrent_failures = 0
 
         return humidity, temperature_c
 
