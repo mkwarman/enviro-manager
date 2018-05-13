@@ -1,5 +1,5 @@
 table, th, td {
-    border: 1px solid black;
+/*    border: 1px solid black;*/
     border-collapse: collapse;
 
 }
@@ -16,9 +16,11 @@ tr:hover {
     background-color: #F5F5F5;
 }
 
+/*
 tr:nth-child(even) {
     background-color: #F2F2F2;
 }
+*/
 
 .na {
     color: #F2F2F2;
