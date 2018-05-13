@@ -254,7 +254,7 @@ def poll_sensor_loop():
 def save_state():
     global light
     global mat
-    with open('.saved_state_pickle', 'wb') as f:
+    with open(SAVE_FILE_NAME, 'wb') as f:
         pickle.dump(light, f)
         pickle.dump(mat, f)
 
