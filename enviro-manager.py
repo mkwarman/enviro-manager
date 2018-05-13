@@ -5,6 +5,8 @@ from flask import Flask
 from threading import Thread
 from duty_cycle import DutyCycle
 from display import Display
+import argparse
+import pickle
 import datetime
 import gpio
 import sys
@@ -74,8 +76,14 @@ sensor_values = [
     }
 ]
 
-if (len(sys.argv) > 1 and sys.argv[1] == 'false'):
+parser = argparse.ArgumentParser()
+parser.add_argument("--gpio_disabled", action='store_true')
+parser.add_argument("--load_file", type=string, action='store_true')
+
+if args.gpio_enabled:
     gpio.enabled(False)
+if args.load_file:
+    load_state(load_file)
 
 def send_alert(title, body):
     payload = '{"body": \"' + body + '\", "title": \"' + title + '\", "type": "note"}'
@@ -236,6 +244,20 @@ def poll_sensor_loop():
     gpio.cleanup()
     display.off()
 
+def save_state():
+    global light
+    global mat
+    with open('saved_state_pickle.dat', 'wb') as f:
+        pickle.dump(light, f)
+        pickle.dump(mat, f)
+
+def load_state(filename):
+    global light
+    global mat
+    with open(filename, 'rb') as f:
+        light = pickle.load(f)
+        mat = pickle.load(f)
+
 @app.route('/')
 @app.route('/index')
 def index():
@@ -288,6 +310,7 @@ if __name__ == "__main__":
         process.join(timeout=10)
     except (KeyboardInterrupt, SystemExit):
         print("Stopping...")
+        save_current_status()
         poll_sensors = False
 
     except Exception as error:
