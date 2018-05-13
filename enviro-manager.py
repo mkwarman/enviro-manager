@@ -238,20 +238,25 @@ def poll_sensor_loop():
 @app.route('/')
 @app.route('/index')
 def index():
-    probe_last_updated = "{0:%H:%M:%S %Y-%m-%d}".format(probe.last_updated) if probe.last_updated else "never"
-    dht1_temp_last_updated = "{0:%H:%M:%S %Y-%m-%d}".format(dht1_temp.last_updated) if dht1_temp.last_updated else "never"
-    dht2_humidity_last_updated = "{0:%H:%M:%S %Y-%m-%d}".format(dht2_humidity.last_updated) if dht2_humidity.last_updated else "never"
+    now = datetime.datetime.now()
+    probe_last_updated = "{0:%H:%M:%S %Y-%m-%d} --- {1} ago" \
+            .format(probe.last_updated, now - probe.last_updated) if probe.last_updated else "never"
+    dht1_temp_last_updated = "{0:%H:%M:%S %Y-%m-%d} --- {1} ago" \
+            .format(dht1_temp.last_updated, now - dht1_temp.last_updated) if dht1_temp.last_updated else "never"
+    dht2_humidity_last_updated = "{0:%H:%M:%S %Y-%m-%d} --- {1} ago" \
+            .format(dht2_humidity.last_updated, now - dht2_humidity.last_updated) if dht2_humidity.last_updated else "never"
+    
     return "<p><h1>Sensor Status:</h1>" \
             + "<h2>Probe temp: {0:0.2f} (target: {1}F)</br>".format(probe_temp, MAT_TEMP_TARGET) \
-            + "--- Last updated: {0}</br>".format(probe_last_updated) \
+            + "    Last updated: {0}</br>".format(probe_last_updated) \
             + (("<strong>" + probe.disabled_string + "</strong>") if probe.disabled else "") \
             + "Sensor1 (temperature): temp={0:0.2f}F hum={1:0.2f}% (target temperature: {2}F)</br>" \
               .format(sensor_values[0].get('temp'), sensor_values[0].get('hum'), AMBIENT_TEMP_TARGET) \
-            + "--- Last updated: {0}</br>".format(dht1_temp_last_updated) \
+            + "    Last updated: {0}</br>".format(dht1_temp_last_updated) \
             + (("<strong>" + dht1_temp.disabled_string + "</strong>") if dht1_temp.disabled else "") \
             + "Sensor2 (humidity): temp={0:0.2f}F hum={1:0.2f}% (target humidity range: {2}% to {3}%)</br>" \
               .format(sensor_values[1].get('temp'), sensor_values[1].get('hum'), HUMIDITY_LOWER_BOUND, HUMIDITY_UPPER_BOUND) \
-            + "--- Last updated: {0}</br>".format(dht2_humidity_last_updated) \
+            + "    Last updated: {0}</br>".format(dht2_humidity_last_updated) \
             + (("<strong>" + dht2_humidity.disabled_string + "</strong>") if dht2_humidity.disabled else "") \
             + "</h2></p>" \
             + "<p><h1>Appliance Status:</h1>" \
