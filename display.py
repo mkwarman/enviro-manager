@@ -14,7 +14,7 @@ class Display:
         # Update the status indicator
         if self.display_status_current_indicator >= len(self.display_status_indicators):
             self.display_status_current_indicator = 0
-        header = "Data:              " + self.display_status_indicators[display_status_current_indicator]
+        header = "Data:              " + self.display_status_indicators[self.display_status_current_indicator]
         self.display.lcd_display_string(header, 1)
 
         self.display.lcd_display_string(text, line)
