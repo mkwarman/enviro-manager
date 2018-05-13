@@ -26,7 +26,7 @@ class Display:
         # Update the spinner
         if self.current_spinner_char >= len(spinner_chars):
             self.current_spinner_char = 0
-        self.display.lcd_display_string("Data:", 1)
+        self.display.lcd_display_string("Data:              ", 1)
         self.display.lcd_display_string_pos(chr(self.current_spinner_char), 1, 19)
         self.current_spinner_char += 1
         
