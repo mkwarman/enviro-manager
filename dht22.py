@@ -1,5 +1,5 @@
 import Adafruit_DHT
-import time
+import datetime
 
 DHT22_RETRIES = 10
 TRIES_BEFORE_DISABLE = 10
@@ -22,7 +22,7 @@ class DHT22:
             self.increment_read_failures()
             raise RuntimeError('Sensor poll failed')
         else:
-            self.last_updated = time.localtime()
+            self.last_updated = datetime.datetime.now();
             if self.concurrent_failures != 0:
                 print("resetting failures")
                 self.concurrent_failures = 0

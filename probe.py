@@ -1,5 +1,5 @@
 import re
-import time
+import datetime
 
 TRIES_BEFORE_DISABLE = 10
 REGEX = re.compile(r'YES\n[\w ]*t=(\d+)$')
@@ -23,7 +23,7 @@ class Probe:
             raise IOError('Could not open probe data file: ' + str(e))
 
         if regex_result:
-            self.last_updated = time.localtime()
+            self.last_updated = datetime.datetime.now();
             if self.concurrent_failures != 0:
                 print("resetting failures")
                 self.concurrent_failures = 0
