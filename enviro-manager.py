@@ -299,21 +299,21 @@ def new():
         {
             'name': mat.name,
             'enabled': mat_enabled,
-            'status': ("on" if gpio.mat_state == ON else "off"),
+            'status': ("On" if gpio.mat_state == ON else "Off"),
             'duty_cycle': str(mat.duty_cycle),
-            'duty_cycle_percentage': mat.get_duty_cycle_percentage()
+            'duty_cycle_percentage': '{0:0.2f}%'.format(mat.get_duty_cycle_percentage())
         },
         {
             'name': light.name,
             'enabled': light_enabled,
-            'status': ("on" if gpio.light_state == ON else "off"),
+            'status': ("On" if gpio.light_state == ON else "Off"),
             'duty_cycle': str(light.duty_cycle),
-            'duty_cycle_percentage': light.get_duty_cycle_percentage()
+            'duty_cycle_percentage': '{0:0.2f}%'.format(light.get_duty_cycle_percentage())
         },
         {
             'name': 'Fogger',
             'enabled': fogger_enabled,
-            'status': ("on" if gpio.fogger_state == ON else "off"),
+            'status': ("On" if gpio.fogger_state == ON else "Off"),
             'duty_cycle': Markup('<span class="na">N/A</span>'),
             'duty_cycle_percentage': Markup('<span class="na">N/A</span>')
         }
