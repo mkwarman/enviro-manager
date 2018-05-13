@@ -249,7 +249,7 @@ def poll_sensor_loop():
 def save_state():
     global light
     global mat
-    with open('saved_state_pickle.dat', 'wb') as f:
+    with open('.saved_state_pickle', 'wb') as f:
         pickle.dump(light, f)
         pickle.dump(mat, f)
 
@@ -259,6 +259,8 @@ def load_state(filename):
     with open(filename, 'rb') as f:
         light = pickle.load(f)
         mat = pickle.load(f)
+    light.send_to_arduino(light.duty_cycle)
+    mat.send_to_arduino(mat.duty_cycle)
 
 @app.route('/')
 @app.route('/index')
