@@ -5,7 +5,7 @@ table, th, td {
 }
 
 th, td {
-    border-bottom: 1px solid #DDDDDD;
+    border: 1px solid #DDDDDD;
 }
 
 th {
@@ -23,5 +23,5 @@ tr:nth-child(even) {
 */
 
 .na {
-    color: #F2F2F2;
+    color: #999999;
 }
