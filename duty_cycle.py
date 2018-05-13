@@ -8,6 +8,7 @@ class DutyCycle:
     duty_cycle = 250
     duty_cycle_delta = 20
     fine_duty_cycle_delta = 1
+    name = None
 
     def __init__(self, name, identifier):
         self.name = name
