@@ -78,9 +78,11 @@ sensor_values = [
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--gpio_disabled", action='store_true')
-parser.add_argument("--load_file", type=string, action='store_true')
+parser.add_argument("--load_file", action='store_true')
 
-if args.gpio_enabled:
+args=parser.parse_args()
+
+if args.gpio_disabled:
     gpio.enabled(False)
 if args.load_file:
     load_state(load_file)
@@ -310,7 +312,7 @@ if __name__ == "__main__":
         process.join(timeout=10)
     except (KeyboardInterrupt, SystemExit):
         print("Stopping...")
-        save_current_status()
+        save_state()
         poll_sensors = False
 
     except Exception as error:
