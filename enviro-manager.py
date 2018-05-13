@@ -239,12 +239,12 @@ def poll_sensor_loop():
 @app.route('/index')
 def index():
     now = datetime.datetime.now()
-    probe_last_updated = "{0:%H:%M:%S %Y-%m-%d} --- {1} ago" \
-            .format(probe.last_updated, now - probe.last_updated) if probe.last_updated else "never"
-    dht1_temp_last_updated = "{0:%H:%M:%S %Y-%m-%d} --- {1} ago" \
-            .format(dht1_temp.last_updated, now - dht1_temp.last_updated) if dht1_temp.last_updated else "never"
-    dht2_humidity_last_updated = "{0:%H:%M:%S %Y-%m-%d} --- {1} ago" \
-            .format(dht2_humidity.last_updated, now - dht2_humidity.last_updated) if dht2_humidity.last_updated else "never"
+    probe_last_updated = "{0:%H:%M:%S %Y-%m-%d} --- {1} seconds ago" \
+            .format(probe.last_updated, (now - probe.last_updated).seconds) if probe.last_updated else "never"
+    dht1_temp_last_updated = "{0:%H:%M:%S %Y-%m-%d} --- {1} seconds ago" \
+            .format(dht1_temp.last_updated, (now - dht1_temp.last_updated).seconds) if dht1_temp.last_updated else "never"
+    dht2_humidity_last_updated = "{0:%H:%M:%S %Y-%m-%d} --- {1} seconds ago" \
+            .format(dht2_humidity.last_updated, (now - dht2_humidity.last_updated).seconds) if dht2_humidity.last_updated else "never"
     
     return "<p><h1>Sensor Status:</h1>" \
             + "<h2>Probe temp: {0:0.2f} (target: {1}F)</br>".format(probe_temp, MAT_TEMP_TARGET) \
