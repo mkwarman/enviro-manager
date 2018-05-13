@@ -2,7 +2,7 @@
 attach
 start
 start_python
-.saved_state_pickle
+.enviro_manager_pickle
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

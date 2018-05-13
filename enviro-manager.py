@@ -46,6 +46,8 @@ CONCURRENT_READ_FAILURE_ALERT_THRESHOLD = 10
 MAT_TEMPERATURE_APPROACH_DELTA_LIMIT = 0.12
 AMBIENT_TEMPERATURE_APPROACH_DELTA_LIMIT = 0.2
 
+SAVE_FILE_NAME = '.enviro_manager_pickle'
+
 display = Display()
 probe = Probe(PROBE_DIRECTORY)
 dht1_temp = DHT22(gpio.DHT_SENSOR1_PIN, 1)
@@ -77,15 +79,18 @@ sensor_values = [
 ]
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--gpio_disabled", action='store_true')
-parser.add_argument("--load_file", action='store_true')
-
-args=parser.parse_args()
+parser.add_argument('--gpio_disabled', action="store_true")
+parser.add_argument('--load_file', action="store_true")
+args = parser.parse_args()
 
 if args.gpio_disabled:
     gpio.enabled(False)
 if args.load_file:
-    load_state(load_file)
+    with open(SAVE_FILE_NAME, 'rb') as f:
+        light = pickle.load(f)
+        mat = pickle.load(f)
+    light.send_to_arduino(serialConnection)
+    mat.send_to_arduino(serialConnection)
 
 def send_alert(title, body):
     payload = '{"body": \"' + body + '\", "title": \"' + title + '\", "type": "note"}'
@@ -252,15 +257,6 @@ def save_state():
     with open('.saved_state_pickle', 'wb') as f:
         pickle.dump(light, f)
         pickle.dump(mat, f)
-
-def load_state(filename):
-    global light
-    global mat
-    with open(filename, 'rb') as f:
-        light = pickle.load(f)
-        mat = pickle.load(f)
-    light.send_to_arduino(light.duty_cycle)
-    mat.send_to_arduino(mat.duty_cycle)
 
 @app.route('/')
 @app.route('/index')
