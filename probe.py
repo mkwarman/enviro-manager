@@ -1,6 +1,6 @@
 import re
 
-TRIES_BEFORE_DISABLE = 3
+TRIES_BEFORE_DISABLE = 10
 REGEX = re.compile(r'YES\n[\w ]*t=(\d+)$')
 
 # DS18b20

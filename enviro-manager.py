@@ -75,9 +75,6 @@ sensor_values = [
     }
 ]
 
-probe_read_failures = 0
-dht_temp_read_failures = 0
-
 if (len(sys.argv) > 1 and sys.argv[1] == 'false'):
     gpio.enabled(False)
 
@@ -100,21 +97,18 @@ def run_probe(probe):
 
     avg_temp = temp/len(probes)
     """
-    global probe_read_failures
-
     temp, display_string = sensor.get_probe_data(probe)
     display.lcd_display_string(display_string, 2)
 
     if not temp:
-        probe_read_failures += 1
-        if probe_read_failures > CONCURRENT_READ_FAILURE_ALERT_THRESHOLD:
-            send_alert("Read Error", str(probe_read_failures) + " probe read failures in a row")
+        if probe.concurrent_failures > CONCURRENT_READ_FAILURE_ALERT_THRESHOLD:
+            send_alert("Read Error", str(probe.concurrent_failures) + " probe read failures in a row")
 
         # no useable data
         print("Not enough data to calculate duty cycle!")
         return
-    elif probe_read_failures != 0:
-        probe_read_failures = 0
+    elif probe.concurrent_failures != 0:
+        probe.concurrent_failures = 0
 
     global probe_temp
     previous_temp = probe_temp
@@ -147,7 +141,6 @@ def run_probe(probe):
 
 def run_dht_temp(dht):
     global sensor_values
-    global dht_temp_read_failures
 
     dht_hum, dht_temp, display_string = sensor.get_dht_data(dht)
     if dht_temp and dht_hum:
@@ -156,12 +149,9 @@ def run_dht_temp(dht):
             'temp': dht_temp,
             'hum': dht_hum
         }
-        if dht_temp_read_failures != 0:
-            dht_temp_read_failures = 0
     else:
-        dht_temp_read_failures += 1
-        if dht_temp_read_failures > CONCURRENT_READ_FAILURE_ALERT_THRESHOLD:
-            send_alert("Read Error", str(dht_temp_read_failures) + " temp DHT read failures in a row")
+        if dht.concurrent_failures > CONCURRENT_READ_FAILURE_ALERT_THRESHOLD:
+            send_alert("Read Error", str(dht.concurrent_failures) + " temp DHT read failures in a row")
         print("DHT temp sensor didn't return usable data")
         return
 
