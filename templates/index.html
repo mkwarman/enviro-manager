@@ -29,19 +29,19 @@
         <h2>Appliance Status:</h2>
         <table style="width:100%">
             <tr>
-                <tr>Appliance</tr>
-                <tr>Enabled</tr>
-                <tr>Current Status</tr>
-                <tr>Duty Cycle</tr>
-                <tr>Duty Cycle Percent</tr>
+                <th>Appliance</th>
+                <th>Enabled</th>
+                <th>Current Status</th>
+                <th>Duty Cycle</th>
+                <th>Duty Cycle Percent</th>
             </tr>
             {% for appliance in appliances %}
             <tr>
-                <tr>{{ appliance.name }}</td>
-                <tr>{{ appliance.enabled }}</tr>
-                <tr>{{ appliance.status }}</tr>
-                <tr>{{ appliance.duty_cycle }}</tr>
-                <tr>{{ appliance.duty_cycle_percent }}</tr>
+                <td>{{ appliance.name }}</td>
+                <td>{{ appliance.enabled }}</td>
+                <td>{{ appliance.status }}</td>
+                <td>{{ appliance.duty_cycle }}</td>
+                <td>{{ appliance.duty_cycle_percent }}</td>
             </tr>
             {% endfor %}
         </table>

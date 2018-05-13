@@ -273,8 +273,8 @@ def new():
             'name': probe.name,
             'temperature': '{0:0.2f}F'.format(probe_temp),
             'target_temperature': "{0}F".format(MAT_TEMP_TARGET),
-            'humidity': '<span class="na">N/A</span>',
-            'target_humidity': '<span class="na">N/A</span>',
+            'humidity': "<span class='na'>N/A</span>",
+            'target_humidity': "<span class='na'>N/A</span>",
             'last_updated': probe_last_updated
         },
         {
@@ -282,13 +282,13 @@ def new():
             'temperature': '{0:0.2f}F'.format(sensor_values[0].get('temp')),
             'target_temperature': "{0}F".format(AMBIENT_TEMP_TARGET),
             'humidity': '{0:0.2f}%'.format(sensor_values[0].get('hum')),
-            'target_humidity': '<span class="na">N/A</span>',
+            'target_humidity': "<span class='na'>N/A</span>",
             'last_updated': dht1_temp_last_updated
         },
         {
             'name': dht2_humidity.name,
             'temperature': '{0:0.2f}F'.format(sensor_values[1].get('temp')),
-            'target_temperature': '<span class="na">N/A</span>',
+            'target_temperature': "<span class='na'>N/A</span>",
             'humidity': '{0:0.2f}%'.format(sensor_values[1].get('hum')),
             'target_humidity': '{0}% to {1}%'.format(AMBIENT_TEMP_LOWER_BOUND, AMBIENT_TEMP_UPPER_BOUND),
             'last_updated': dht2_humidity_last_updated
@@ -314,12 +314,12 @@ def new():
             'name': 'Fogger',
             'enabled': fogger_enabled,
             'status': ("on" if gpio.fogger_state == ON else "off"),
-            'duty_cycle': '<span class="na">N/A</span>',
-            'duty_cycle_percentage': '<span class="na">N/A</span>'
+            'duty_cycle': "<span class='na'>N/A</span>",
+            'duty_cycle_percentage': "<span class='na'>N/A</span>"
         }
     ]
 
-    return render_template('index.html', sensors=sensors)
+    return render_template('index.html', sensors=sensors, appliances=appliances)
 
 @app.route('/')
 @app.route('/index')
