@@ -52,8 +52,8 @@ display = Display()
 probe = Probe(PROBE_DIRECTORY, 'Probe')
 dht1_temp = DHT22(gpio.DHT_SENSOR1_PIN, 1, 'Sensor1 (temperature)')
 dht2_humidity = DHT22(gpio.DHT_SENSOR2_PIN, 2, 'Sensor2 (humidity)')
-mat = DutyCycle(MAT_SERIAL_IDENTIFIER)
-light = DutyCycle(LIGHT_SERIAL_IDENTIFIER)
+mat = DutyCycle("Mat", MAT_SERIAL_IDENTIFIER)
+light = DutyCycle("Light", LIGHT_SERIAL_IDENTIFIER)
 
 light.duty_cycle_delta = 10
 
@@ -262,19 +262,19 @@ def save_state():
 @app.route('/new')
 def new():
     now = datetime.datetime.now()
-    probe_last_updated = "{0:%H:%M:%S %Y-%m-%d} --- {1} seconds ago" \
+    probe_last_updated = "{1} seconds ago ({0:%H:%M:%S %Y-%m-%d}) " \
             .format(probe.last_updated, (now - probe.last_updated).seconds) if probe.last_updated else "never"
-    dht1_temp_last_updated = "{0:%H:%M:%S %Y-%m-%d} --- {1} seconds ago" \
+    dht1_temp_last_updated = "{1} seconds ago ({0:%H:%M:%S %Y-%m-%d})" \
             .format(dht1_temp.last_updated, (now - dht1_temp.last_updated).seconds) if dht1_temp.last_updated else "never"
-    dht2_humidity_last_updated = "{0:%H:%M:%S %Y-%m-%d} --- {1} seconds ago" \
+    dht2_humidity_last_updated = "{1} seconds ago ({0:%H:%M:%S %Y-%m-%d})" \
             .format(dht2_humidity.last_updated, (now - dht2_humidity.last_updated).seconds) if dht2_humidity.last_updated else "never"
     sensors = [
         {
             'name': probe.name,
             'temperature': '{0:0.2f}F'.format(probe_temp),
             'target_temperature': "{0}F".format(MAT_TEMP_TARGET),
-            'humidity': 'N/A',
-            'target_humidity': 'N/A',
+            'humidity': '<span class="na">N/A</span>',
+            'target_humidity': '<span class="na">N/A</span>',
             'last_updated': probe_last_updated
         },
         {
@@ -282,16 +282,40 @@ def new():
             'temperature': '{0:0.2f}F'.format(sensor_values[0].get('temp')),
             'target_temperature': "{0}F".format(AMBIENT_TEMP_TARGET),
             'humidity': '{0:0.2f}%'.format(sensor_values[0].get('hum')),
-            'target_humidity': 'N/A',
+            'target_humidity': '<span class="na">N/A</span>',
             'last_updated': dht1_temp_last_updated
         },
         {
             'name': dht2_humidity.name,
             'temperature': '{0:0.2f}F'.format(sensor_values[1].get('temp')),
-            'target_temperature': 'N/A',
+            'target_temperature': '<span class="na">N/A</span>',
             'humidity': '{0:0.2f}%'.format(sensor_values[1].get('hum')),
             'target_humidity': '{0}% to {1}%'.format(AMBIENT_TEMP_LOWER_BOUND, AMBIENT_TEMP_UPPER_BOUND),
             'last_updated': dht2_humidity_last_updated
+        }
+    ]
+
+    appliances = [
+        {
+            'name': mat.name,
+            'enabled': mat_enabled,
+            'status': ("on" if gpio.mat_state == ON else "off"),
+            'duty_cycle': str(mat.duty_cycle),
+            'duty_cycle_percentage': mat.get_duty_cycle_percentage()
+        },
+        {
+            'name': light.name,
+            'enabled': light_enabled,
+            'status': ("on" if gpio.light_state == ON else "off"),
+            'duty_cycle': str(light.duty_cycle),
+            'duty_cycle_percentage': light.get_duty_cycle_percentage()
+        },
+        {
+            'name': 'Fogger',
+            'enabled': fogger_enabled,
+            'status': ("on" if gpio.fogger_state == ON else "off"),
+            'duty_cycle': '<span class="na">N/A</span>',
+            'duty_cycle_percentage': '<span class="na">N/A</span>'
         }
     ]
 
