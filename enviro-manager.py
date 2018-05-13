@@ -5,6 +5,8 @@ from flask import Flask, render_template
 from threading import Thread
 from duty_cycle import DutyCycle
 from display import Display
+import argparse
+import pickle
 import datetime
 import gpio
 import sys
@@ -44,6 +46,8 @@ CONCURRENT_READ_FAILURE_ALERT_THRESHOLD = 10
 MAT_TEMPERATURE_APPROACH_DELTA_LIMIT = 0.12
 AMBIENT_TEMPERATURE_APPROACH_DELTA_LIMIT = 0.2
 
+SAVE_FILE_NAME = '.enviro_manager_pickle'
+
 display = Display()
 probe = Probe(PROBE_DIRECTORY, 'Probe')
 dht1_temp = DHT22(gpio.DHT_SENSOR1_PIN, 1, 'Sensor1 (temperature)')
@@ -74,8 +78,20 @@ sensor_values = [
     }
 ]
 
-if (len(sys.argv) > 1 and sys.argv[1] == 'false'):
+parser = argparse.ArgumentParser()
+parser.add_argument('--gpio_disabled', action="store_true")
+parser.add_argument('--load_file', action="store_true")
+args = parser.parse_args()
+
+if args.gpio_disabled:
     gpio.enabled(False)
+if args.load_file:
+    with open(SAVE_FILE_NAME, 'rb') as f:
+        light = pickle.load(f)
+        mat = pickle.load(f)
+    print("Sending loaded values...")
+    light.send_to_arduino(serialConnection)
+    mat.send_to_arduino(serialConnection)
 
 def send_alert(title, body):
     payload = '{"body": \"' + body + '\", "title": \"' + title + '\", "type": "note"}'
@@ -236,6 +252,13 @@ def poll_sensor_loop():
     gpio.cleanup()
     display.off()
 
+def save_state():
+    global light
+    global mat
+    with open('.saved_state_pickle', 'wb') as f:
+        pickle.dump(light, f)
+        pickle.dump(mat, f)
+
 @app.route('/new')
 def new():
     now = datetime.datetime.now()
@@ -320,6 +343,7 @@ if __name__ == "__main__":
         process.join(timeout=10)
     except (KeyboardInterrupt, SystemExit):
         print("Stopping...")
+        save_state()
         poll_sensors = False
 
     except Exception as error:
