@@ -20,7 +20,7 @@
                             <th>Humidity</th>
                             <th>Target Humidity</th>
                             <th>Last Updated</th>
-                        </tr>`
+                        </tr>`;
                     for(var i = 0; i < sensors.length; i++) {
                         table_string = table_string + "<tr>"
                                 + "<td>" + sensors[i].name + "</td>"
@@ -29,9 +29,9 @@
                                 + "<td>" + sensors[i].humidity + "</td>"
                                 + "<td>" + sensors[i].target_humidity + "</td>"
                                 + "<td class='time'>" + sensors[i].last_updated + "</td>" 
-                            + "</tr>"
+                            + "</tr>";
                     }
-                    return table_string
+                    return table_string;
                 }
 
 
@@ -43,7 +43,7 @@
                             <th>Current Status</th>
                             <th>Duty Cycle</th>
                             <th>Duty Cycle Percent</th>
-                        </tr>`
+                        </tr>`;
                     for(var i = 0; i < appliances.length; i++) {
                         table_string = table_string + "<tr>"
                                 + "<td>" + appliances[i].name + "</td>"
@@ -51,9 +51,9 @@
                                 + "<td>" + appliances[i].status + "</td>"
                                 + "<td>" + appliances[i].duty_cycle + "</td>"
                                 + "<td>" + appliances[i].duty_cycle_percentage + "</td>"
-                            + "</tr>"
+                            + "</tr>";
                     }
-                    return table_string
+                    return table_string;
                 }
 
                 socket.on('sensor_update', function(msg) {
@@ -92,47 +92,47 @@
         </script>
     </head>
     <body>
-        <h2>Sensor Status:</h2>
-        <table id="sensors" style="width:100%">
-            <tr>
-                <th>Sensor</th>
-                <th>Temperature</th>
-                <th>Target Temperature</th>
-                <th>Humidity</th>
-                <th>Target Humidity</th>
-                <th>Last Updated</th>
-            </tr>
-            {% for sensor in sensors %}
-            <tr>
-                <td>{{ sensor.name }}</td>
-                <td>{{ sensor.temperature }}</td>
-                <td>{{ sensor.target_temperature }}</td>
-                <td>{{ sensor.humidity }}</td>
-                <td>{{ sensor.target_humidity }}</td>
-                <td class='time'>{{ sensor.last_updated }}</td>
-            </tr>
-            {% endfor %}
-        </table>
-        <hr>
-        <h2>Appliance Status:</h2>
-        <table id="appliances" style="width:100%">
-            <tr>
-                <th>Appliance</th>
-                <th>Enabled</th>
-                <th>Current Status</th>
-                <th>Duty Cycle</th>
-                <th>Duty Cycle Percent</th>
-            </tr>
-            {% for appliance in appliances %}
-            <tr>
-                <td>{{ appliance.name }}</td>
-                <td>{{ appliance.enabled }}</td>
-                <td>{{ appliance.status }}</td>
-                <td>{{ appliance.duty_cycle }}</td>
-                <td>{{ appliance.duty_cycle_percentage }}</td>
-            </tr>
-            {% endfor %}
-        </table>
-        <div id="log"></div>
+        <div class="container">
+            <h2>Sensor Status:</h2>
+            <table id="sensors" class="table">
+                <tr>
+                    <th>Sensor</th>
+                    <th>Temperature</th>
+                    <th>Target Temperature</th>
+                    <th>Humidity</th>
+                    <th>Target Humidity</th>
+                    <th>Last Updated</th>
+                </tr>
+                {% for sensor in sensors %}
+                <tr>
+                    <td>{{ sensor.name }}</td>
+                    <td>{{ sensor.temperature }}</td>
+                    <td>{{ sensor.target_temperature }}</td>
+                    <td>{{ sensor.humidity }}</td>
+                    <td>{{ sensor.target_humidity }}</td>
+                    <td class='time'>{{ sensor.last_updated }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+            <h2>Appliance Status:</h2>
+            <table id="appliances" class="table">
+                <tr>
+                    <th>Appliance</th>
+                    <th>Enabled</th>
+                    <th>Current Status</th>
+                    <th>Duty Cycle</th>
+                    <th>Duty Cycle Percent</th>
+                </tr>
+                {% for appliance in appliances %}
+                <tr>
+                    <td>{{ appliance.name }}</td>
+                    <td>{{ appliance.enabled }}</td>
+                    <td>{{ appliance.status }}</td>
+                    <td>{{ appliance.duty_cycle }}</td>
+                    <td>{{ appliance.duty_cycle_percentage }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
     </body>
 </html>
