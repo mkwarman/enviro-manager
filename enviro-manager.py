@@ -339,6 +339,14 @@ def save_state():
         pickle.dump(light, f)
         pickle.dump(mat, f)
 
+@socketio.on('connect', namespace='/live')
+def live_connect():
+    print('Client connected: {0}'.format(session))
+
+@socketio.on('disconnect', namespace='/live')
+def live_disconnect():
+    print('Client disconnected {0}'.format(session))
+
 @app.route('/new')
 def new():
     return render_template('index.html', sensors=get_sensors_object(), appliances=get_appliances_object())
