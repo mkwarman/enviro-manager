@@ -341,11 +341,11 @@ def save_state():
 
 @socketio.on('connect', namespace='/live')
 def live_connect():
-    print('Client connected: {0}'.format(session))
+    print('Client connected')
 
 @socketio.on('disconnect', namespace='/live')
 def live_disconnect():
-    print('Client disconnected {0}'.format(session))
+    print('Client disconnected')
 
 @app.route('/new')
 def new():
