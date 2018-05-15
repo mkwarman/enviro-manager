@@ -134,8 +134,6 @@ def run_probe(probe):
     previous_temp = probe_temp
     probe_temp = temp
 
-    socketio.emit('sensor_update', {'data': get_sensors_object()}, namespace='/live')
-
     if temp < MAT_TEMP_TARGET:
         gpio.set_mat(ON)
         if temp < MAT_TEMP_LOWER_BOUND:
@@ -161,6 +159,10 @@ def run_probe(probe):
                 print("Increase mat duty cycle due to approach speed")
                 mat.increase_duty_cycle(serialConnection)
 
+    socketio.emit('sensor_update',
+            {'sensors': get_sensors_object(), 'appliances': get_appliances_object()},
+            namespace='/live')
+
 def run_dht_temp(dht):
     global sensor_values
 
@@ -176,8 +178,6 @@ def run_dht_temp(dht):
             send_alert("Read Error", str(dht.concurrent_failures) + " temp DHT read failures in a row")
         print("DHT temp sensor didn't return usable data")
         return
-
-    socketio.emit('sensor_update', {'data': get_sensors_object()}, namespace='/live')
 
     if display_string:
         display.update(display_string, dht.number + 2)
@@ -212,6 +212,10 @@ def run_dht_temp(dht):
                 print("Increase light duty cycle due to approach speed")
                 light.increase_duty_cycle(serialConnection)
 
+    socketio.emit('sensor_update',
+            {'sensors': get_sensors_object(), 'appliances': get_appliances_object()},
+            namespace='/live')
+
 def run_dht_humidity(dht):
     global sensor_values
 
@@ -226,8 +230,6 @@ def run_dht_humidity(dht):
         print("DHT humidity sensor didn't return usable data")
         return
 
-    socketio.emit('sensor_update', {'data': get_sensors_object()}, namespace='/live')
-
     if display_string:
         display.update(display_string, dht.number + 2)
 
@@ -237,6 +239,10 @@ def run_dht_humidity(dht):
     elif dht_hum > HUMIDITY_UPPER_BOUND:
         print("Turn off fogger")
         gpio.set_fogger(OFF)
+
+    socketio.emit('sensor_update',
+            {'sensors': get_sensors_object(), 'appliances': get_appliances_object()},
+            namespace='/live')
 
 def poll_sensor_loop():
     while poll_sensors:
