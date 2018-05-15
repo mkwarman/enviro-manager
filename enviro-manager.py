@@ -119,7 +119,7 @@ def run_probe(probe):
     """
     temp, display_string = sensor.get_probe_data(probe)
     display.update(display_string, 2)
-    socketio.emit('sensor_update', {'data': display_string}, namespace='/live')
+    socketio.emit('sensor_update', {'data': get_sensors_object}, namespace='/live')
 
     if not temp:
         if probe.concurrent_failures > CONCURRENT_READ_FAILURE_ALERT_THRESHOLD:
@@ -134,6 +134,8 @@ def run_probe(probe):
     global probe_temp
     previous_temp = probe_temp
     probe_temp = temp
+
+    socketio.emit('sensor_update', {'data': get_sensors_object()}, namespace='/live')
 
     if temp < MAT_TEMP_TARGET:
         gpio.set_mat(ON)
@@ -176,10 +178,10 @@ def run_dht_temp(dht):
         print("DHT temp sensor didn't return usable data")
         return
 
+    socketio.emit('sensor_update', {'data': get_sensors_object()}, namespace='/live')
 
     if display_string:
         display.update(display_string, dht.number + 2)
-        socketio.emit('sensor_update', {'data': display_string}, namespace='/live')
 
     global ambient_temp
     previous_ambient_temp = ambient_temp
@@ -225,9 +227,10 @@ def run_dht_humidity(dht):
         print("DHT humidity sensor didn't return usable data")
         return
 
+    socketio.emit('sensor_update', {'data': get_sensors_object()}, namespace='/live')
+
     if display_string:
         display.update(display_string, dht.number + 2)
-        socketio.emit('sensor_update', {'data': display_string}, namespace='/live')
 
     if dht_hum < HUMIDITY_LOWER_BOUND:
         gpio.set_fogger(ON)
@@ -260,15 +263,7 @@ def poll_sensor_loop():
     gpio.cleanup()
     display.off()
 
-def save_state():
-    global light
-    global mat
-    with open(SAVE_FILE_NAME, 'wb') as f:
-        pickle.dump(light, f)
-        pickle.dump(mat, f)
-
-@app.route('/new')
-def new():
+def get_sensors_object():
     now = datetime.datetime.now()
     probe_last_updated = "{1} seconds ago ({0:%H:%M:%S %Y-%m-%d}) " \
             .format(probe.last_updated, (now - probe.last_updated).seconds) if probe.last_updated else "never"
@@ -302,7 +297,9 @@ def new():
             'last_updated': dht2_humidity_last_updated
         }
     ]
+    return sensors
 
+def get_appliances_object():
     appliances = [
         {
             'name': mat.name,
@@ -326,8 +323,18 @@ def new():
             'duty_cycle_percentage': Markup('<span class="na">N/A</span>')
         }
     ]
+    return appliances
 
-    return render_template('index.html', sensors=sensors, appliances=appliances)
+def save_state():
+    global light
+    global mat
+    with open(SAVE_FILE_NAME, 'wb') as f:
+        pickle.dump(light, f)
+        pickle.dump(mat, f)
+
+@app.route('/new')
+def new():
+    return render_template('index.html', sensors=get_sensors_object(), appliances=get_appliances_object())
 
 @app.route('/')
 @app.route('/index')
