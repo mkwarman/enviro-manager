@@ -258,8 +258,9 @@ def poll_sensor_loop():
             if (fogger_enabled):
                 run_dht_humidity(dht2_humidity)
             sleep(1)
-        except (KeyboardInterrupt, SystemExit):
-            print("Stopping...")
+        except (KeyboardInterrupt, SystemExit) as exit:
+            # if we catch stop signal here instead of in the parent process
+            print("Stopping background process")
             break
 
         except Exception as error:
@@ -269,6 +270,7 @@ def poll_sensor_loop():
 
     gpio.cleanup()
     display.off()
+    print("Ended poll_sensor_loop. You may need to send shutdown signal again to stop the server.")
 
 def get_sensors_object():
     now = datetime.datetime.now()
@@ -397,15 +399,19 @@ def test_exception():
 
 if __name__ == "__main__":
     try:
-        eventlet.spawn(poll_sensor_loop)
+        process = eventlet.spawn(poll_sensor_loop)
         socketio.run(app, host='0.0.0.0', port=80, use_reloader=False)
     except (KeyboardInterrupt, SystemExit):
-        print("Stopping...")
-        save_state()
+        print("Shutting down...")
         poll_sensors = False
-
+        process.wait()
+        save_state()
+        pass
+    
     except Exception as error:
         send_alert("Exception occurred", "Uncaught exception occurred. Stack trace to follow (hopefully)")
         send_alert("Exception:", str(error))
         gpio.cleanup()
         raise error
+
+    print("Done")
