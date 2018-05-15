@@ -2,8 +2,9 @@
     <head>
         <title>Environment Manager</title>
         <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-        <script src="/socket.io/socket.io.js"></script>
-        <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+	<!-- <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.1.js"></script> -->
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.slim.min.js"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.0/socket.io.slim.js"></script>
         <script type="text/javascript">
             $(document).ready(function(){
                 var socket = io.connect('http://' + document.domain + ':' + location.port + '/live');
@@ -22,6 +23,8 @@
                         updates_string = updates_string + '<p>' + updates[i].toString() + '</p>'
                     }
                     $('#log').html(updates_string);
+		});
+	    });
         </script>
     </head>
     <body>

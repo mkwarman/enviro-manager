@@ -378,7 +378,7 @@ if __name__ == "__main__":
         process = Thread(target=poll_sensor_loop)
         process.start()
         #app.run(host='0.0.0.0', port=80, use_reloader=False)
-        socketio.run(app)
+        socketio.run(app, host='0.0.0.0', port=80, use_reloader=False)
         process.join(timeout=10)
     except (KeyboardInterrupt, SystemExit):
         print("Stopping...")
