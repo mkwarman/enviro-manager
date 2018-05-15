@@ -3,7 +3,6 @@ from dht22 import DHT22
 from time import sleep
 from flask import Flask, Markup, render_template
 from flask_socketio import SocketIO, emit
-from threading import Thread
 from duty_cycle import DutyCycle
 from display import Display
 import argparse
@@ -15,6 +14,9 @@ import sensor
 import serial
 import requests
 import os
+import eventlet
+
+eventlet.monkey_patch()
 
 app = Flask(__name__)
 # Set up encryption
@@ -387,11 +389,8 @@ def test_exception():
 
 if __name__ == "__main__":
     try:
-        process = Thread(target=poll_sensor_loop)
-        process.start()
-        #app.run(host='0.0.0.0', port=80, use_reloader=False)
+        eventlet.spawn(poll_sensor_loop)
         socketio.run(app, host='0.0.0.0', port=80, use_reloader=False)
-        process.join(timeout=10)
     except (KeyboardInterrupt, SystemExit):
         print("Stopping...")
         save_state()
@@ -400,5 +399,5 @@ if __name__ == "__main__":
     except Exception as error:
         send_alert("Exception occurred", "Uncaught exception occurred. Stack trace to follow (hopefully)")
         send_alert("Exception:", str(error))
-        GPIO.cleanup()
+        gpio.cleanup()
         raise error
