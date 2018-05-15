@@ -83,10 +83,10 @@
                         if (node.value === "never")
                             return;
                         else
-                            value_array = node.value.split(" ");
+                            value_array = node.textContent.split(" ");
                             value_array[0] = (parseInt(value_array[0]) + 1);
-                            node.value = value_array.join(" ")
-                    }
+                            node.textContent = value_array.join(" ");
+                    });
                 }, 1000);
             });
         </script>
