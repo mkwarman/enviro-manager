@@ -2,6 +2,7 @@ from probe import Probe
 from dht22 import DHT22
 from time import sleep
 from flask import Flask, Markup, render_template
+from flask_socketio import SocketIO, emit
 from threading import Thread
 from duty_cycle import DutyCycle
 from display import Display
@@ -16,6 +17,10 @@ import requests
 import os
 
 app = Flask(__name__)
+# Set up encryption
+app.config['DEBUG'] = True
+
+socketio = SocketIO(app)
 
 # Environment vars
 PUSHBULLET_TOKEN = os.environ.get('PUSHBULLET_TOKEN') or None
@@ -114,6 +119,7 @@ def run_probe(probe):
     """
     temp, display_string = sensor.get_probe_data(probe)
     display.update(display_string, 2)
+    socketio.emit('sensor_update', {'data': display_string}, namespace='/live')
 
     if not temp:
         if probe.concurrent_failures > CONCURRENT_READ_FAILURE_ALERT_THRESHOLD:
@@ -173,6 +179,7 @@ def run_dht_temp(dht):
 
     if display_string:
         display.update(display_string, dht.number + 2)
+        socketio.emit('sensor_update', {'data': display_string}, namespace='/live')
 
     global ambient_temp
     previous_ambient_temp = ambient_temp
@@ -220,6 +227,7 @@ def run_dht_humidity(dht):
 
     if display_string:
         display.update(display_string, dht.number + 2)
+        socketio.emit('sensor_update', {'data': display_string}, namespace='/live')
 
     if dht_hum < HUMIDITY_LOWER_BOUND:
         gpio.set_fogger(ON)
@@ -369,7 +377,8 @@ if __name__ == "__main__":
     try:
         process = Thread(target=poll_sensor_loop)
         process.start()
-        app.run(host='0.0.0.0', port=80, use_reloader=False)
+        #app.run(host='0.0.0.0', port=80, use_reloader=False)
+        socketio.run(app)
         process.join(timeout=10)
     except (KeyboardInterrupt, SystemExit):
         print("Stopping...")

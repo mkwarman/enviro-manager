@@ -2,6 +2,27 @@
     <head>
         <title>Environment Manager</title>
         <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+        <script type="text/javascript">
+            $(document).ready(function(){
+                var socket = io.connect('http://' + document.domain + ':' + location.port + '/live');
+                var updates = [];
+
+                socket.on('sensor_update', function(msg) {
+                    console.log("Received data:" + msg.data);
+
+                    if(updates.length >= 10){
+                        numbers.shift()
+                    }
+
+                    updates.push(msg.data);
+                    updates_string = '';
+                    for(var i = 0; i < updates.length; i++){
+                        updates_string = updates_string + '<p>' + updates[i].toString() + '</p>'
+                    }
+                    $('#log').html(updates_string);
+        </script>
     </head>
     <body>
         <h2>Sensor Status:</h2>
@@ -45,5 +66,6 @@
             </tr>
             {% endfor %}
         </table>
+        <div id="log"></div>
     </body>
 </html>
