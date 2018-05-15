@@ -18,7 +18,7 @@ import os
 
 app = Flask(__name__)
 # Set up encryption
-app.config['DEBUG'] = True
+app.config['DEBUG'] = False
 
 socketio = SocketIO(app)
 
