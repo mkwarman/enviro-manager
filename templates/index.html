@@ -28,7 +28,7 @@
                                 + "<td>" + sensors[i].target_temperature + "</td>"
                                 + "<td>" + sensors[i].humidity + "</td>"
                                 + "<td>" + sensors[i].target_humidity + "</td>"
-                                + "<td>" + sensors[i].last_updated + "</td>" 
+                                + "<td class='time'>" + sensors[i].last_updated + "</td>" 
                             + "</tr>"
                     }
                     return table_string
@@ -75,8 +75,20 @@
                     $('table#sensors').html(getSensorsTable(msg.sensors));
                     $('table#appliances').html(getAppliancesTable(msg.appliances));
 
-        	});
-	    });
+                });
+
+                // Count time since last update
+                setInterval(function() {
+                    document.querySelectorAll(".time").forEach(function(node) {
+                        if (node.value === "never")
+                            return;
+                        else
+                            value_array = node.value.split(" ");
+                            value_array[0] = (parseInt(value_array[0]) + 1);
+                            node.value = value_array.join(" ")
+                    }
+                }, 1000);
+            });
         </script>
     </head>
     <body>
@@ -97,7 +109,7 @@
                 <td>{{ sensor.target_temperature }}</td>
                 <td>{{ sensor.humidity }}</td>
                 <td>{{ sensor.target_humidity }}</td>
-                <td>{{ sensor.last_updated }}</td>
+                <td class='time'>{{ sensor.last_updated }}</td>
             </tr>
             {% endfor %}
         </table>
