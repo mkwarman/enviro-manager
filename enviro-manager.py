@@ -260,8 +260,12 @@ def poll_sensor_loop():
             sleep(1)
         except (KeyboardInterrupt, SystemExit) as exit:
             # if we catch stop signal here instead of in the parent process
-            print("Stopping background process")
-            break
+            print("Stopping background process...")
+            gpio.cleanup()
+            display.off()
+            print("Stopping server")
+            socketio.stop()
+            return False
 
         except Exception as error:
             send_alert("Exception occurred", "Uncaught exception occurred. Stack trace to follow (hopefully)")
@@ -270,7 +274,6 @@ def poll_sensor_loop():
 
     gpio.cleanup()
     display.off()
-    print("Ended poll_sensor_loop. You may need to send shutdown signal again to stop the server.")
 
 def get_sensors_object():
     now = datetime.datetime.now()
@@ -402,10 +405,6 @@ if __name__ == "__main__":
         process = eventlet.spawn(poll_sensor_loop)
         socketio.run(app, host='0.0.0.0', port=80, use_reloader=False)
     except (KeyboardInterrupt, SystemExit):
-        print("Shutting down...")
-        poll_sensors = False
-        process.wait()
-        save_state()
         pass
     
     except Exception as error:
@@ -414,4 +413,10 @@ if __name__ == "__main__":
         gpio.cleanup()
         raise error
 
+    if process:
+        print("Stopping background process...")        
+        poll_sensors = False
+        process.wait()
+    print("Saving state...")
+    save_state()
     print("Done")
