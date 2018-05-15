@@ -1,6 +1,7 @@
 <html>
     <head>
         <title>Environment Manager</title>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css">
         <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 	<!-- <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.1.js"></script> -->
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.slim.min.js"></script>
@@ -30,10 +31,11 @@
                                 + "<td>" + sensors[i].last_updated + "</td>" 
                             + "</tr>"
                     }
+		    return table_string
                 }
 
                 socket.on('sensor_update', function(msg) {
-                    console.log("Received data:" + msg.data);
+                    console.log("Received data:" + JSON.stringify(msg.data));
                     /*
                     if(updates.length >= 10){
                         updates.shift()
@@ -46,9 +48,9 @@
                     }
                     $('#log').html(updates_string);
                     */
-                    $('table#sensors').html(getSensorTable(JSON.stringify(msg.data))
-        		});
-	        });
+                    $('table#sensors').html(getSensorTable(msg.data))
+        	});
+	    });
         </script>
     </head>
     <body>

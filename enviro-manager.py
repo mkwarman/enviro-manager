@@ -119,7 +119,6 @@ def run_probe(probe):
     """
     temp, display_string = sensor.get_probe_data(probe)
     display.update(display_string, 2)
-    socketio.emit('sensor_update', {'data': get_sensors_object}, namespace='/live')
 
     if not temp:
         if probe.concurrent_failures > CONCURRENT_READ_FAILURE_ALERT_THRESHOLD:
