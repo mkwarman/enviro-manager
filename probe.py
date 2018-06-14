@@ -7,6 +7,7 @@ REGEX = re.compile(r'YES\n[\w ]*t=(\d+)$')
 # DS18b20
 class Probe:
     concurrent_failures = 0
+    total_failures = 0
     disabled = False
     disabled_string = "Probe disabled"
     last_updated = None
@@ -41,6 +42,7 @@ class Probe:
 
     def increment_read_failures(self):
         self.concurrent_failures += 1
+        self.total_failures += 1
         if self.concurrent_failures >= TRIES_BEFORE_DISABLE:
             self.disabled = True
             self.disabled_string = ("Check probe conn!")

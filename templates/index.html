@@ -20,6 +20,8 @@
                             <th>Humidity</th>
                             <th>Target Humidity</th>
                             <th>Last Updated</th>
+                            <th>Failures</th>
+                            <th>Total Failures</th>
                         </tr>`;
                     for(var i = 0; i < sensors.length; i++) {
                         table_string = table_string + "<tr>"
@@ -28,7 +30,9 @@
                                 + "<td>" + sensors[i].target_temperature + "</td>"
                                 + "<td>" + sensors[i].humidity + "</td>"
                                 + "<td>" + sensors[i].target_humidity + "</td>"
-                                + "<td class='time'>" + sensors[i].last_updated + "</td>" 
+                                + "<td class='time'>" + sensors[i].last_updated + "</td>"
+                                + "<td>" + sensors[i].concurrent_failures + "</td>"
+                                + "<td>" + sensors[i].total_failures + "</td>"
                             + "</tr>";
                     }
                     return table_string;
@@ -83,9 +87,9 @@
                         if (node.value === "never")
                             return;
                         else
-                            value_array = node.textContent.split(" ");
+                            value_array = node.textContent.split("s");
                             value_array[0] = (parseInt(value_array[0]) + 1);
-                            node.textContent = value_array.join(" ");
+                            node.textContent = value_array.join("s");
                     });
                 }, 1000);
             });
@@ -102,6 +106,8 @@
                     <th>Humidity</th>
                     <th>Target Humidity</th>
                     <th>Last Updated</th>
+                    <th>Failures</th>
+                    <th>Total Failures</th>
                 </tr>
                 {% for sensor in sensors %}
                 <tr>
@@ -111,6 +117,8 @@
                     <td>{{ sensor.humidity }}</td>
                     <td>{{ sensor.target_humidity }}</td>
                     <td class='time'>{{ sensor.last_updated }}</td>
+                    <td>{{ sensor.concurrent_failures }}</td>
+                    <td>{{ sensor.total_failures }}</td>
                 </tr>
                 {% endfor %}
             </table>

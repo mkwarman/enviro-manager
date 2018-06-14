@@ -161,10 +161,6 @@ def run_probe(probe):
                 print("Increase mat duty cycle due to approach speed")
                 mat.increase_duty_cycle(serialConnection)
 
-    socketio.emit('sensor_update',
-            {'sensors': get_sensors_object(), 'appliances': get_appliances_object()},
-            namespace='/live')
-
 def run_dht_temp(dht):
     global sensor_values
 
@@ -214,10 +210,6 @@ def run_dht_temp(dht):
                 print("Increase light duty cycle due to approach speed")
                 light.increase_duty_cycle(serialConnection)
 
-    socketio.emit('sensor_update',
-            {'sensors': get_sensors_object(), 'appliances': get_appliances_object()},
-            namespace='/live')
-
 def run_dht_humidity(dht):
     global sensor_values
 
@@ -242,21 +234,26 @@ def run_dht_humidity(dht):
         print("Turn off fogger")
         gpio.set_fogger(OFF)
 
-    socketio.emit('sensor_update',
-            {'sensors': get_sensors_object(), 'appliances': get_appliances_object()},
-            namespace='/live')
-
 def poll_sensor_loop():
     while poll_sensors:
         try:
             if (mat_enabled):
                 run_probe(probe)
+            socketio.emit('sensor_update',
+                    {'sensors': get_sensors_object(), 'appliances': get_appliances_object()},
+                    namespace='/live')
             sleep(1)
             if (light_enabled):
                 run_dht_temp(dht1_temp)
+            socketio.emit('sensor_update',
+                    {'sensors': get_sensors_object(), 'appliances': get_appliances_object()},
+                    namespace='/live')
             sleep(1)
             if (fogger_enabled):
                 run_dht_humidity(dht2_humidity)
+            socketio.emit('sensor_update',
+                    {'sensors': get_sensors_object(), 'appliances': get_appliances_object()},
+                    namespace='/live')
             sleep(1)
         except (KeyboardInterrupt, SystemExit) as exit:
             # if we catch stop signal here instead of in the parent process
@@ -277,12 +274,14 @@ def poll_sensor_loop():
 
 def get_sensors_object():
     now = datetime.datetime.now()
-    probe_last_updated = "{1} seconds ago ({0:%H:%M:%S %Y-%m-%d}) " \
-            .format(probe.last_updated, (now - probe.last_updated).seconds) if probe.last_updated else "never"
-    dht1_temp_last_updated = "{1} seconds ago ({0:%H:%M:%S %Y-%m-%d})" \
-            .format(dht1_temp.last_updated, (now - dht1_temp.last_updated).seconds) if dht1_temp.last_updated else "never"
-    dht2_humidity_last_updated = "{1} seconds ago ({0:%H:%M:%S %Y-%m-%d})" \
-            .format(dht2_humidity.last_updated, (now - dht2_humidity.last_updated).seconds) if dht2_humidity.last_updated else "never"
+    # Full Date format: "({1:%H:%M:%S %Y-%m-%d})" 
+    # Dont forget to add [sensor].last_updated to .format(...) section (note the "1:" above)
+    probe_last_updated = "{0}s ago" \
+            .format((now - probe.last_updated).seconds) if probe.last_updated else "never"
+    dht1_temp_last_updated = "{0}s ago" \
+            .format((now - dht1_temp.last_updated).seconds) if dht1_temp.last_updated else "never"
+    dht2_humidity_last_updated = "{0}s ago" \
+            .format((now - dht2_humidity.last_updated).seconds) if dht2_humidity.last_updated else "never"
     sensors = [
         {
             'name': probe.name,
@@ -290,7 +289,9 @@ def get_sensors_object():
             'target_temperature': "{0}F".format(MAT_TEMP_TARGET),
             'humidity': Markup('<span class="na">N/A</span>'),
             'target_humidity': Markup('<span class="na">N/A</span>'),
-            'last_updated': probe_last_updated
+            'last_updated': probe_last_updated,
+            'concurrent_failures': probe.concurrent_failures,
+            'total_failures': probe.total_failures
         },
         {
             'name': dht1_temp.name,
@@ -298,7 +299,9 @@ def get_sensors_object():
             'target_temperature': "{0}F".format(AMBIENT_TEMP_TARGET),
             'humidity': '{0:0.2f}%'.format(sensor_values[0].get('hum')),
             'target_humidity': Markup('<span class="na">N/A</span>'),
-            'last_updated': dht1_temp_last_updated
+            'last_updated': dht1_temp_last_updated,
+            'concurrent_failures': dht1_temp.concurrent_failures,
+            'total_failures': dht1_temp.total_failures
         },
         {
             'name': dht2_humidity.name,
@@ -306,7 +309,9 @@ def get_sensors_object():
             'target_temperature': Markup('<span class="na">N/A</span>'),
             'humidity': '{0:0.2f}%'.format(sensor_values[1].get('hum')),
             'target_humidity': '{0}% to {1}%'.format(AMBIENT_TEMP_LOWER_BOUND, AMBIENT_TEMP_UPPER_BOUND),
-            'last_updated': dht2_humidity_last_updated
+            'last_updated': dht2_humidity_last_updated,
+            'concurrent_failures': dht2_humidity.concurrent_failures,
+            'total_failures': dht2_humidity.total_failures
         }
     ]
     return sensors

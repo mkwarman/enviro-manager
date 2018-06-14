@@ -8,6 +8,7 @@ TRIES_BEFORE_DISABLE = 10
 class DHT22:
     sensor = Adafruit_DHT.DHT22
     concurrent_failures = 0
+    total_failures = 0
     disabled = False
     last_updated = None
     name = ""
@@ -38,6 +39,7 @@ class DHT22:
 
     def increment_read_failures(self):
         self.concurrent_failures += 1
+        self.total_failures += 1
         print("incrementing failures, now: " + str(self.concurrent_failures))
         if self.concurrent_failures >= TRIES_BEFORE_DISABLE:
             self.disabled = True
