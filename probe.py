@@ -43,6 +43,6 @@ class Probe:
     def increment_read_failures(self):
         self.concurrent_failures += 1
         self.total_failures += 1
-        if self.concurrent_failures >= TRIES_BEFORE_DISABLE:
-            self.disabled = True
-            self.disabled_string = ("Check probe conn!")
+        #if self.concurrent_failures >= TRIES_BEFORE_DISABLE:
+        #    self.disabled = True
+        #    self.disabled_string = ("Check probe conn!")

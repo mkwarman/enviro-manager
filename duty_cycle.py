@@ -1,6 +1,6 @@
 import serial
 
-DUTY_CYCLE_MIN = 10
+DUTY_CYCLE_MIN = 50
 DUTY_CYCLE_MAX = 480
 
 class DutyCycle:

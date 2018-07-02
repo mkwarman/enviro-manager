@@ -41,6 +41,6 @@ class DHT22:
         self.concurrent_failures += 1
         self.total_failures += 1
         print("incrementing failures, now: " + str(self.concurrent_failures))
-        if self.concurrent_failures >= TRIES_BEFORE_DISABLE:
-            self.disabled = True
-            self.disabled_string = ("Check sensor " + str(self.number) + " conn!")
+        #if self.concurrent_failures >= TRIES_BEFORE_DISABLE:
+        #    self.disabled = True
+        #    self.disabled_string = ("Check sensor " + str(self.number) + " conn!")

@@ -123,7 +123,8 @@ def run_probe(probe):
     display.update(display_string, 2)
 
     if not temp:
-        if probe.concurrent_failures > CONCURRENT_READ_FAILURE_ALERT_THRESHOLD:
+        if probe.concurrent_failures == CONCURRENT_READ_FAILURE_ALERT_THRESHOLD:
+            gpio.set_mat(OFF)
             send_alert("Read Error", str(probe.concurrent_failures) + " probe read failures in a row")
 
         # no useable data
@@ -172,7 +173,8 @@ def run_dht_temp(dht):
             'hum': dht_hum
         }
     else:
-        if dht.concurrent_failures > CONCURRENT_READ_FAILURE_ALERT_THRESHOLD:
+        if dht.concurrent_failures == CONCURRENT_READ_FAILURE_ALERT_THRESHOLD:
+            gpio.set_light(OFF)
             send_alert("Read Error", str(dht.concurrent_failures) + " temp DHT read failures in a row")
         print("DHT temp sensor didn't return usable data")
         return
@@ -239,22 +241,22 @@ def poll_sensor_loop():
         try:
             if (mat_enabled):
                 run_probe(probe)
-            socketio.emit('sensor_update',
+                socketio.emit('sensor_update',
                     {'sensors': get_sensors_object(), 'appliances': get_appliances_object()},
                     namespace='/live')
-            sleep(1)
+            eventlet.sleep(1)
             if (light_enabled):
                 run_dht_temp(dht1_temp)
-            socketio.emit('sensor_update',
+                socketio.emit('sensor_update',
                     {'sensors': get_sensors_object(), 'appliances': get_appliances_object()},
                     namespace='/live')
-            sleep(1)
+            eventlet.sleep(1)
             if (fogger_enabled):
                 run_dht_humidity(dht2_humidity)
-            socketio.emit('sensor_update',
+                socketio.emit('sensor_update',
                     {'sensors': get_sensors_object(), 'appliances': get_appliances_object()},
                     namespace='/live')
-            sleep(1)
+            eventlet.sleep(1)
         except (KeyboardInterrupt, SystemExit) as exit:
             # if we catch stop signal here instead of in the parent process
             print("Stopping background process...")
