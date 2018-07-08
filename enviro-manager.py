@@ -356,13 +356,13 @@ def live_connect():
 def live_disconnect():
     print('Client disconnected')
 
-@app.route('/new')
-def new():
-    return render_template('index.html', sensors=get_sensors_object(), appliances=get_appliances_object())
-
 @app.route('/')
 @app.route('/index')
 def index():
+    return render_template('index.html', sensors=get_sensors_object(), appliances=get_appliances_object())
+
+@app.route('/old')
+def old():
     now = datetime.datetime.now()
     probe_last_updated = "{0:%H:%M:%S %Y-%m-%d} --- {1} seconds ago" \
             .format(probe.last_updated, (now - probe.last_updated).seconds) if probe.last_updated else "never"
