@@ -29,33 +29,33 @@ class Config(ConfigParser):
 
     def create_default_conf(self):
         self['application_status'] = {
-                'MAT':      'False',
-                'LIGHT':    'False',
-                'FOGGER':   'False'}
+            'MAT':      'False',
+            'LIGHT':    'False',
+            'FOGGER':   'False'}
         self['probe'] = {
-                'READ_DIRECTORY':   ''}
+            'READ_DIRECTORY':   ''}
         self['mat_bounds'] = {
-                'LOWER_BOUND':  '',
-                'TARGET':       '',
-                'UPPER_BOUND':  '',
-                'DANGER_ZONE':  ''}
+            'LOWER':  '',
+            'TARGET':       '',
+            'UPPER':  '',
+            'DANGER_ZONE':  ''}
         self['ambient_bounds'] = {
-                'LOWER_BOUND':  '',
-                'TARGET':       '',
-                'UPPER_BOUND':  '',
-                'DANGER_ZONE':  '',}
+            'LOWER':  '',
+            'TARGET':       '',
+            'UPPER':  '',
+            'DANGER_ZONE':  '',}
         self['humidity_bounds'] = {
-                'LOWER_BOUND':  ''}
-                'UPPER_BOUND':  '',
+            'LOWER':  '',
+            'UPPER':  ''}
         self['external'] = {
-                'PUSHBULLET_TOKEN': '',
-                'PUSHBULLET_URL':   ''}
+            'PUSHBULLET_TOKEN': '',
+            'PUSHBULLET_URL':   ''}
         self['alert'] = {
-                'CONCURRENT_READ_FAILURE_ALERT_THRESHOLD':  '10'}
+            'CONCURRENT_READ_FAILURE_ALERT_THRESHOLD':  '10'}
         self['save_file'] = {
-                'NAME': '.enviro_manager_pickle'}
+            'NAME': '.enviro_manager_pickle'}
         self.save_config()
 
     def save_config(self):
         with open(CONFIG_FILE_NAME, 'w') as configfile:
-            self.write(configfile
+            self.write(configfile)

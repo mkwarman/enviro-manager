@@ -115,9 +115,9 @@ def run_probe(probe):
     probe_temp = temp
 
     section = 'mat_bounds'
-    lower_bound = config.getint(section, 'LOWER_BOUND')
+    lower_bound = config.getint(section, 'LOWER')
     target      = config.getint(section, 'TARGET')
-    upper_bound = config.getint(section, 'UPPER_BOUND')
+    upper_bound = config.getint(section, 'UPPER')
     danger_zone = config.getint(section, 'DANGER_ZONE')
 
     if temp < target:
@@ -170,9 +170,9 @@ def run_dht_temp(dht):
     ambient_temp = dht_temp
 
     section = 'ambient_bounds'
-    lower_bound = config.getint(section, 'LOWER_BOUND')
+    lower_bound = config.getint(section, 'LOWER')
     target      = config.getint(section, 'TARGET')
-    upper_bound = config.getint(section, 'UPPER_BOUND')
+    upper_bound = config.getint(section, 'UPPER')
     danger_zone = config.getint(section, 'DANGER_ZONE')
     
     if ambient_temp < target:
@@ -219,8 +219,8 @@ def run_dht_humidity(dht):
         display.update(display_string, dht.number + 2)
 
     section = 'humidity_bounds'
-    lower_bound = config.getint(section, 'LOWER_BOUND')
-    upper_bound = config.getint(section, 'UPPER_BOUND')
+    lower_bound = config.getint(section, 'LOWER')
+    upper_bound = config.getint(section, 'UPPER')
 
     if dht_hum < lower_bound:
         gpio.set_fogger(ON)
@@ -307,7 +307,7 @@ def get_sensors_object():
             'temperature': '{0:0.2f}F'.format(sensor_values[1].get('temp')),
             'target_temperature': Markup('<span class="na">N/A</span>'),
             'humidity': '{0:0.2f}%'.format(sensor_values[1].get('hum')),
-            'target_humidity': '{0}% to {1}%'.format(ambient_lower, ambient_upper),
+            'target_humidity': '{0}% to {1}%'.format(hum_lower, hum_upper),
             'last_updated': dht2_humidity_last_updated,
             'concurrent_failures': dht2_humidity.concurrent_failures,
             'total_failures': dht2_humidity.total_failures
