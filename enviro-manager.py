@@ -407,6 +407,11 @@ def test_alert():
 def test_exception():
     raise Exception("Test exception requested")
 
+
+@app.route('/status')
+def status():
+    return "Ok"
+
 if __name__ == "__main__":
     try:
         process = eventlet.spawn(poll_sensor_loop)
