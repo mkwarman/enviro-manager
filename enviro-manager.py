@@ -43,8 +43,6 @@ dht2_humidity = DHT22(gpio.DHT_SENSOR2_PIN, 2, 'Sensor2 (humidity)')
 mat = DutyCycle("Mat", MAT_SERIAL_IDENTIFIER)
 light = DutyCycle("Light", LIGHT_SERIAL_IDENTIFIER)
 
-light.duty_cycle_delta = 10
-
 serialConnection = serial.Serial('/dev/serial0', 9600)
 
 poll_sensors = True
