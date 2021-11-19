@@ -33,7 +33,15 @@ class DataSources(ABC):
             self.add(new_datasource)
 
     def print(self):
-        [data_source.print() for data_source in self.datasources]
+        [datasource.print() for datasource in self.datasources]
+    
+    def poll(self):
+        results = []
+        for datasource in self.datasources:
+            name = datasource.get_name()
+            data = datasource.get_data() if datasource.has_data() else datasource.get_last()
+            results.append((name, data))
+        return results
 
     def get_datasource_dict(self):
         return self.datasource_dict

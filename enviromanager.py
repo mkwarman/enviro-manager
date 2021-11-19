@@ -11,7 +11,10 @@ def load_config():
     environment = config['DEFAULT']['Environment']
     return config[environment]
 
-def get_sources(config):
+def get_sources(config = {}):
+    if not config:
+        config = load_config()
+
     sources = DataSources()
     source_definitions = config.get('DataSources')
     for source_definition in json.loads(source_definitions):
@@ -19,13 +22,11 @@ def get_sources(config):
     return sources
 
 def poll(sources):
-    print('polling...')
-    sources.print()
+    print(sources.poll())
 
 def start_loop(config, sources):
     start_time = time.time()
     loop_time = config.getfloat('PollFrequency')
-    print("Loop time:", loop_time)
     while True:
         poll(sources)
         time.sleep(loop_time - ((time.time() - start_time) % loop_time))
