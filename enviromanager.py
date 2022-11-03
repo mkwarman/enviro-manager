@@ -4,6 +4,7 @@ import json
 from datasource.datasources import DataSources
 
 CONFIG_FILE = '.env'
+SENSORS_FILE = 'sensors.json'
 
 def load_config():
     config = configparser.ConfigParser()
@@ -12,13 +13,12 @@ def load_config():
     return config[environment]
 
 def get_sources(config = {}):
-    if not config:
-        config = load_config()
-
     sources = DataSources()
-    source_definitions = config.get('DataSources')
-    for source_definition in json.loads(source_definitions):
-        sources.add_from_definition(source_definition)
+
+    with open(SENSORS_FILE, 'r') as f:
+        for source_definition in json.loads(f.read()):
+            sources.add_from_definition(source_definition)
+
     return sources
 
 def poll(sources):
