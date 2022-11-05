@@ -4,6 +4,7 @@ from ..datasource import DataSource
 
 KEY = 'RandomData'
 
+
 class RandomData(DataSource):
     def __init__(self, options):
         super().__init__(options['name'])
@@ -19,9 +20,10 @@ class RandomData(DataSource):
         self.last = randint(self.rand_min, self.rand_max)
         self.last_read_time = time.time()
         return self.last
-    
+
     def get_last(self):
         return self.last
 
-def get_class(options):
+
+def get_instance(options):
     return RandomData(options)
